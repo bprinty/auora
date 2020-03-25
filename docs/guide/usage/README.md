@@ -1,448 +1,238 @@
-# Usage
+# Guide
+
+This section details how to use the module, including ....
+
+There are several alternatives you can use when trying to manage state for an application, each with their own nuances and caveats:
+
+* [Redux](https://github.com/reduxjs/redux)
+* [MobX](https://github.com/mobxjs/mobx)
+* [Vuex](https://github.com/vuejs/vuex)
+* [Effector](https://github.com/zerobias/effector)
+
+This package is an alternative take at state management, that attempts to take the best ideas from each of these frameworks to provide an all-in-one solution with an intuitive API that can easily fit into any frontend framework.
+
+The core concepts that need to be understood when using this module are:
+
+* [State](#state) - The global source of truth for data models in the application.
+* [Mutations](#mutations) - Operations that change state.
+* [Actions](#actions) - Syncronous or asyncronous processes that can **commit** mutations.
+* [Events](#events) - Operations that front-end components can subscribe to for updating data.
+
+For additional context on how to use this module in a front-end framework like [Vue](https://vuejs.org/) or [React](https://reactjs.org/), see the [Examples](/examples/) section of the documentation.
 
 
-## Generic Model
+## State
+
+Talk about the concept of state.
 
 
-## REST API
+## Mutations
 
-Endpoints:
+Talk about the concept of mutations.
 
-```
-/posts
-  GET - Query all or a subset of authors.
 
-/posts/:id
-  GET - Get the metadata for a single post.
-  PUT - Update data for a single post.
-  DELETE - Delete a specific post.
+## Actions
 
-/posts/:id/author
-  GET - Get metadata for the author of a post.
-  POST - Update post author.
-  DELETE - Unlink post author.
+Talk about the concept of actions.
 
-/posts/:id/archive
-  POST - Archive a post.
 
-/posts/:id/comments
-  GET - Get the all comments for a single post.
-  POST - Add new comment to post comments.
+## Events
 
-/posts/:id/editors
-  GET - Get the all editors for a single post.
-  POST - Add new editors to post.
-```
+Talk about subscribing to events.
 
-Model:
 
-```javascript
-class Editor extends RestModel { ... }
+## Flow
 
-class Author extends RestModel { ... }
+<mermaid>
 
-class Comment extends RestModel {
-  ...
+</mermaid>
 
-  props() {
-    ...
 
-    post_id: {
-      type: Number,
-      required: true,
-      fk: Post,
-    }
-  }
+## Declarative vs Explicit
 
-  ...
-}
+There are two supported paradigms for declaring store variables and their associated mutations/actions:
 
-class Post extends RestModel {
+1. Declarative - ...
+2. Explicit - ...
 
-  options() {
-    return {
-      baseURL: '/api',
-    }
-  }
 
-  meta() {
-    return {
-      collection: '/posts',
-      model: '/posts/:id',
-      actions: {
-        archive: '/posts/:id/archive',
-        refresh: true,
-      }
-    };
-  }
 
-  props() {
-    return {      
-      slug: {
-        parse: value => value.toLowerCase().replace(' ', '-'),
-        from: 'title',
-        to: false,
-      },
-      title: {
-        default: 'My Post Title',
-        required: true,
-        type: String,
-      },
-      body: {
-        type: String,
-        mutate: value => `<div>${value}</div>`,
-      },
-      archived: {
-        type: Boolean,
-        default: false,
-      },
-      author_id: {
-        type: Number,
-        required: true,
-        fk: Author,
-      }
-    };
-  }
-
-  relations() {
-    return {
-      author: {
-        model: Author,
-        url: '/posts/:id/author',
-      },
-      comments: {
-        model: Comment,
-        url: '/posts/:id/comments',
-      }
-      editors: {
-        model: Editor,
-        url: '/posts/:id/editors',
-      }
-    };
-  }
-
-}
-```
-
-Usage:
+You can also use this declarative mechanism for other Vuex state properties as well (even if you're not connecting to an external API):
 
 ```javascript
-// query
-await Post.fetch()
-const post = Post.query().filter(post => post.archived && post.body.match(/test/)).one();
-const comments = await post.comments.fetch();
-const author = await post.author.fetch();
+/**
+* Simple counter state property for counting something.
+*/
+const counter = {
+  default: 0,
+  mutations: {
+    increment: value => value + 1,
+  },
+}
 
-// crud
-post.title
-post.$.title
-post.title = 'test';
-await post.commit(); // PUT /posts/:id { title: test }
-const newPost = new Post({ title: 'foo' });
-await newPost.commit(); // POST /posts { title: foo }
-await newPost.remove(); // DELETE /posts/:id
-
-// relations
-post.comments.push(new Comment({ ... }));
-await post.commit();
-post.author = await Author.query().one();
-await post.commit();
-post.roles.push(await Role.query().random());
-await post.commit();
+// instantiate store with module
+store = new Store({
+  modules: {
+    counter,
+  },
+})
 ```
 
-Adapter:
+::: warning
+
+Talk about assumptions made by mutations with this syntax -> they're always used to update the specified property directly, so no ``state`` proxy needs to be passed in.
+
+:::
+
+Using this way of defining state properties, mutations for updating the data are automatically created for the store, along with any additional mutations provided for the property:
 
 ```javascript
-import 'store' from './store';
-
-class RestAdapter extends Adapter {
-
-  connect(model) {
-    // get session token?
-  }
-
-  async fetch(cls, params) {
-    const name = model.__spec__.name;
-    const endpoint = model.__spec__.meta.fetch;
-    const results = await axios.get(endpoint, { params }).then(response => response.data);
-    store.commit(`${name}.sync`, results);
-  }
-
-  async create(cls, data) {
-    const name = model.__spec__.name;
-    const endpoint = model.__spec__.meta.create;
-    const results =  await axios.post(endpoint, data).then(response => response.data);
-    store.commit(`${name}.sync`, results);
-  }
-
-  async update(instance, data) {
-    const name = model.__spec__.name;
-    const endpoint = _.template(instance.constructor.__spec__.meta.update)(data);    
-    const results =  await axios.put(endpoint, data).then(response => response.data);
-    store.commit(`${name}.sync`, results);
-  }
-
-  async delete(instance, data) {
-    const name = model.__spec__.name;
-    const endpoint = _.template(instance.constructor.__spec__.meta.update)(data);
-    const results =  await axios.delete(endpoint).then(response => response.data);
-    store.commit(`${name}.remove`, data);
-  }
-
-  async fetchRelation() {
-    ...
-  }
-
-}
+// using it in the store
+store.state.counter; // get the state for counter
+store.commit('counter', 2); // set the counter value to `2`
+store.commit('increment'); // increment the counter
 ```
 
-## SQL
-
-Schema:
-
-```
-CREATE TABLE authors ( ... )
-
-CREATE TABLE comments (
-  ...
-  post_id INTEGER REFERENCES posts(id)
-)
-
-CREATE TABLE editors(
-  ...
-  author_editor_id INTEGER REFERENCES author_editor(id)
-)
-
-CREATE TABLE post_editor(
-  id SERIAL PRIMARY KEY,
-  post_id INTEGER REFERENCES posts(id)
-  editor_id INTEGER REFERENCES editors(id)
-)
-
-CREATE TABLE posts(
-  id SERIAL PRIMARY KEY,
-  title VARCHAR(200),
-  body TEXT,
-  archived BOOLEAN,
-  author_id INTEGER REFERENCES authors(id)
-  post_editor_id INTEGER REFERENCES post_editor(id)
-)
-```
-
-Model:
+This may seem like a trivial syntactic pivot for non-API operations, but it becomes more useful when you're dealing with many state properties with lots of complexity. It also helps for maintainability to see all mutations/actions associated with a specific state property in the same block of code. Take the following code for example:
 
 ```javascript
-class Editor extends SqlModel { ... }
-
-class Author extends SqlModel { ... }
-
-class Comment extends SqlModel {
-  ...
-
-  props() {
-    ...
-
-    post_id: {
-      type: Number,
-      required: true,
-      fk: Post,
+const counter = {
+  default: 0,
+  type: Number,
+  mutations: {
+    increment: {
+      before: () => {},
+      apply: value => value + 1,
+      callback: () => {},
+    },
+  },
+  actions: {
+    add: {
+      before: () => {},
+      dispatch: () =>
     }
   }
+```
 
-  ...
+```javascript
+const state = {
+  counter: 0,
 }
-
-class PostEditor extends SqlModel {
-  meta() {
-    return {
-      table: 'author_editor',
-    }
-  }
-
-  props() {
-    return {
-      post_id: {
-        type: Number,
-        required: true,
-        fk: Post,
-      },
-      editor_id: {
-        type: Number,
-        required: true,
-        fk: Editor,
-      }
-    }
+const mutations = {
+  increment(state, value) {
+    state.counter = value;
   }
 }
-
-class Post extends SqlModel {
-
-  options() {
-    return {
-      host: 'my.db.com',
-      username: 'user',
-      password: 'password',
-      key: 'id',
-    };
-  }
-
-  meta() {
-    return {
-      table: 'posts',
-    };
-  }
-
-  props() {
-    return {
-      slug: {
-        parse: value => value.toLowerCase().replace(' ', '-'),
-        from: 'title',
-        to: false,
-      },
-      title: {
-        default: 'My Post Title',
-        required: true,
-        type: String,
-      },
-      body: {
-        type: String,
-        mutate: value => `<div>${value}</div>`,
-      },
-      archived: {
-        type: Boolean,
-        default: false,
-      }
-      author_id: {
-        type: Number,
-        required: true,
-        fk: Author,
-      }
-    };
-  }
-
-  relations() {
-    return {
-      author: {
-        model: Author,
-      },
-      comments: {
-        model: Comment,
-      },
-      roles: {
-        model: Role,
-        by: AuthorRole,
-      }
-    };
-  }
-
-  async archive() {
-    this.archived = true;
-    await this.commit();
+const actions = {
+  add({ state, commit }, value) => {
+    commit('counter', state.value + value);
   }
 }
 ```
 
-Usage:
+
 
 ```javascript
-// query
-const post = await Post.query().filter(and(equal('archived', true), contains(body, 'test'))).one();
-const comments = await post.comments.fetch();
-const author = await post.author.fetch();
-
-// crud
-post.title
-post.title = 'test';
-await post.commit(); // UPDATE posts SET title = 'test' WHERE posts.id = :id
-const newPost = new Post({ title: 'foo' });
-await newPost.commit(); // INSERT into posts(title) VALUES ('test')
-await newPost.remove(); // DELETE from posts WHERE posts.id = :id
-
-// relations
-post.comments.push(new Comment({ ... }));
-await post.commit();
-post.author = await Author.query().one();
-await post.commit();
-post.roles.push(await Role.query().random());
-await post.commit();
-```
-
-Adapter:
-
-```javascript
-import knex from 'knex';
-
-async function transactional(func) {
-  return (...arg) => {
-    const trx = await knex.transaction();
-    try {
-      const query = await func(...arg);
-      return await trx.commit(query.transacting(trx));
-    catch (err) {
-      trx.rollback(err);
-    }
-  }
-}
-
-class SqlAdapter extends Adapter {
-
-  connect(model) {
-    knex.connect(...);
-  }
-
-  reduce(data, model) {
-    if (_.isArray(data)) {
-      return data.map(item => new model(item));
-    } else {
-      return new model(item);
-    }
-  }
-
-  async fetch(model, params) {
-    const table = model.__spec__.meta.table;
-    return await knex(data).where(params).select('*');
-  }
-
-  @transactional
-  async create(model, data) {
-    const table = model.__spec__.meta.table;
-    return await knex(table).insert(data);
-  }
-
-  @transactional
-  async update(instance, data) {
-    const table = instance.constructor.__spec__.meta.table;
-    return await knex.update(data).where().into(name);
-  }
-
-  @transactional
-  async delete(instance, { id }) {
-    const table = instance.constructor.__spec__.meta.table;
-    return await knex(table).where({ id }).del();
-  }
-
-  // const type = relationshipType(modelTable, relationTable);
-  async fetchRelation(model, relation, type, params) {
-    const modelTable = model.__spec__.meta.table;
-    const relationTable = relation.__spec__.meta.table;
-    if ( type === 'one-many' ) {
-      // comment
-      return await knex(table).join(relationTable, {
-        `${relationTable}.post_id`: `${modelTable}.id`
+/**
+ * Simple counter state property for counting something.
+ */
+const counter = {
+  default: 0,
+  type: Number,
+  mutations: {
+    increment: value => value + 1,
+    incrementBy: (value, extra) => value + extra,
+    decrement: value => value - 1,
+  },
+  actions: {
+    incrementAsync({ commit }) {
+      return new Promise((resolve, reject) => {
+        setTimeout(() => {
+          commit('increment');
+        }, 1000);
       });
-    } else ( type === 'many-one' ) {
-      // author
+    }),
+    incrementAndAdd({ commit }, value) {
+      commit('increment');
+      commit('incrementBy', value);
+    },
+  }
+}
 
-    } else ( type === 'many' ) {
-      // editors
-
+/**
+ * Other dummy property for example.
+ */
+const otherProperty = {
+  default: 'foo',
+  type: String,
+  mutations: {
+    addBar: value => `${value}bar`,
+  },
+  actions: {
+    postBar({ commit }) {
+      return axios.post('/api/bar');
     }
   }
-
-  async updateRelation() {
-    ...
-  }
-
 }
+
+// instantiate store with module
+store = new Store({
+  modules: {
+    counter,
+    otherProperty,
+  },
+})
 ```
+
+This might be preferable (easier to understand/maintain) compared to how Vuex constructs are normally declared:
+
+```javascript
+const store = {
+  counter: 0,
+  otherProperty: 'foo',
+};
+
+const mutations = {
+  counter(state, value) {
+    state.counter = Number(value);
+  },
+  increment(state) {
+    state.count++;
+  },
+  incrementBy(state, extra) {
+    state.count + extra;
+  },
+  decrement(state){
+    state.count--;
+  },
+  otherProperty(state, value) {
+    state.otherProperty = String(value);
+  },
+  addBar(state) {
+    state.value = `${value}bar`;
+  },
+};
+
+const actions = {
+  incrementAsync({ commit }) {
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        commit('increment');
+      }, 1000);
+    });
+  }),
+  incrementAndAdd({ commit }, value) {
+    commit('increment');
+    commit('incrementBy', value);
+  },
+  postBar({ commit }) {
+    return axios.post('/api/bar');
+  }
+};
+```
+
+Obviously, syntactic preference is a subjective thing and changes based on differences in background and individual coding style. The main reason for introducing this more declarative syntax is because it is used for defining models for API endpoints.
+
+
+
+If you have any questions that aren't answered by this documentation, feel free to file a `documentation` issue in the [GitHub Issue Tracker](https://github.com/bprinty/jest-axios) for this project.
