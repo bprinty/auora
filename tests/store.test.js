@@ -190,4 +190,26 @@ describe("events", () => {
     assert.equal(count, 5);
   });
 
+  // test("events.detect", async() => {
+  //   let count = 0;
+  //   const increment = () => {
+  //     count += 1;
+  //   };
+  //   store.subscribe('counter', increment);
+  //   store.subscribe('increment', increment);
+  //   store.subscribe('syncAdd', increment);
+  //
+  //   // state only
+  //   await store.dispatch('asyncAdd', 1);
+  //   assert.equal(count, 1);
+  //
+  //   // state + mutation
+  //   store.commit('increment');
+  //   assert.equal(count, 3);
+  //
+  //   // action + state
+  //   store.dispatch('syncAdd', 1);
+  //   assert.equal(count, 5);
+  // });
+
 });
