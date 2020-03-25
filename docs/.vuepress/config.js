@@ -1,18 +1,18 @@
 module.exports = {
-  base: '/vuex-reflect/',
+  base: '/auora/',
   locales: {
     '/': {
       lang: 'en-US',
-      title: 'Vuex Reflect',
-      description: 'Front-End Data Models with Vuex'
+      title: 'Auora',
+      description: 'Lightweight, Framework-Agnostic State Manager'
     }
   },
-  plugins: {
-    'vuepress-plugin-autodoc': {},
-  },
+  plugins: [
+    'autodoc'
+  ],
   theme: '@vuepress/theme-default',
   themeConfig: {
-    repo: 'bprinty/vuex-reflect',
+    repo: 'bprinty/auora',
     docsDir: 'docs',
     docsBranch: 'master',
     editLinks: true,
@@ -23,61 +23,28 @@ module.exports = {
         selectText: 'Languages',
         lastUpdated: 'Last Updated',
         editLinkText: 'Edit this page on GitHub',
-        // nav: [
-        //   {
-        //     text: 'API',
-        //     link: '/api/'
-        //   },
-        // ],
         sidebar: {
           '/': [
             {
-              title: 'Overview ',
-              path: '/',
-              collapsable: false,
-            },
-            {
               title: 'Setup',
+              path: '/setup/',
               collapsable: false,
-              children: [
-                '/guide/setup/install',
-                '/guide/setup/configure',
-              ],
             },
             {
-              title: 'Models',
+              title: 'Guide',
+              path: '/guide/',
               collapsable: false,
-              children: [
-                '/guide/models/overview',
-                '/guide/models/api',
-                '/guide/models/properties',
-                '/guide/models/relationships',
-                '/guide/models/querying',
-                '/guide/models/customization',
-                '/guide/models/singleton',
-              ],
             },
             {
-              title: 'Store',
+              title: 'Examples',
+              path: '/examples/',
               collapsable: false,
-              children: [
-                '/guide/store/overview',
-                '/guide/store/api',
-                '/guide/store/contract',
-                '/guide/store/relationships',
-                '/guide/store/querying',
-                '/guide/store/singleton',
-                '/guide/store/debugging',
-              ],
             },
-            // {
-            //   title: 'Examples',
-            //   collapsable: false,
-            //   children: [
-            //     '/guide/examples/todo',
-            //     '/guide/examples/blog',
-            //   ],
-            // },
+            {
+              title: 'API',
+              path: '/api/',
+              collapsable: true,
+            },
           ],
         }
       }
