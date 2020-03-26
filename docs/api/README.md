@@ -2,7 +2,7 @@
 
 ## Event Management
 
-### PubSub
+<!-- ### PubSub
 
 /autodoc src/store.js PubSub
 
@@ -11,4 +11,4 @@
 
 ### Store
 
-/autodoc src/store.js Store
+/autodoc src/store.js Store -->
