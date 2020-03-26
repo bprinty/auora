@@ -62,6 +62,7 @@
     "vuepress-plugin-autodoc": "^0.1.5"
   },
   "dependencies": {
+    "@fortawesome/fontawesome-free": "^5.13.0",
     "lodash": "^4.17.15"
   }
 }
