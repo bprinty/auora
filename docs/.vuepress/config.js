@@ -4,7 +4,7 @@ module.exports = {
     '/': {
       lang: 'en-US',
       title: 'Auora',
-      description: 'Lightweight, Framework-Agnostic State Manager'
+      description: 'State management that is 🔥💯.'
     }
   },
   plugins: [
@@ -16,6 +16,7 @@ module.exports = {
     docsDir: 'docs',
     docsBranch: 'master',
     editLinks: true,
+    displayAllHeaders: true,
     sidebarDepth: 3,
     locales: {
       '/': {
@@ -25,6 +26,12 @@ module.exports = {
         editLinkText: 'Edit this page on GitHub',
         sidebar: {
           '/': [
+            {
+              title: 'Overview',
+              path: '/overview/',
+              collapsable: false,
+              children: ['-']
+            },
             {
               title: 'Setup',
               path: '/setup/',
