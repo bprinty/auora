@@ -293,37 +293,8 @@ const done = store.get('doneTodos');
 
 **Method 3**
 
-```javascript
-// api.js
-function fetchTodos() {
-  return axios.get('/todos').then(response => response.data);
-}
 
-function completeTodo(id) {
-   return axios.post(`/todos/${id}`).then(response => response.data);
-}
 
-const state = {
-  todos: [],
-};
-
-const getters = {
-  getDoneTodos: state => state.todos.filter(x => x.done)
-}
-
-const actions = {
-  fetchTodos: store.sync('todos', fetchTodos),
-  completeTodo: store.sync('todos', completeTodo),
-}
-
-state = new State({ state, getters, actions });
-```
-
-```javascript
-const todos = await store.dispatch('fetchTodos');
-await store.dispatch('completeTodo', todos[0].id);
-const done = store.get('doneTodos');
-```
 
 
 ::: tip
