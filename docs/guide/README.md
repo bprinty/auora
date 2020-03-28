@@ -1,54 +1,150 @@
 # Guide
 
-This section details how to use the module, including ....
+There are currently several broadly-adopted alternatives to state management for JavaScript applications (e.g. [Redux](https://github.com/reduxjs/redux), [MobX](https://github.com/mobxjs/mobx), [Vuex](https://github.com/vuejs/vuex), [Effector](https://github.com/zerobias/effector)). Each provide a unique developer experience and enforce a specific paradigm for changing state and broadcasting updates to linked views/components.
 
-There are several alternatives you can use when trying to manage state for an application, each with their own nuances and caveats:
+### Why Make *Another* State Manager?
 
-* [Redux](https://github.com/reduxjs/redux)
-* [MobX](https://github.com/mobxjs/mobx)
-* [Vuex](https://github.com/vuejs/vuex)
-* [Effector](https://github.com/zerobias/effector)
+This package is an alternative approach to the same problem, attempting to take the best ideas from each alternative listed above (and provide some new ones). It's meant to provide an all-in-one solution with an intuitive API that can easily fit into any frontend framework.
 
-This package is an alternative take at state management, that attempts to take the best ideas from each of these frameworks to provide an all-in-one solution with an intuitive API that can easily fit into any frontend framework. The features provided by this library that aren't avaialble in other libraries include:
+The code for this project was initially developed as part of an all-purpose (frontend and backend) [ORM](https://bprinty.github.io/vuex-reflect), but after use and iteration has evolved into it's own thing.
 
-1. Optional transaction support in `actions` that can roll back `state` on errors.
-2. ...
+### How is this Library Different?
 
+Unique features provided by this library that aren't readily available in other state management libraries include:
+
+::: tip State Transactions
+
+Stores can be configured with optional transaction support in `actions` that will rollback `state` on errors during action execution.
+
+:::
+
+::: tip Multi-Layered Hooks
+
+Users can subscribe to both global events (i.e. `before-mutate`, `after-action`, etc ...), and *specific* actions, mutations, or changes to state variables.
+
+:::
+
+::: tip Declarative Syntax
+
+Along with standard syntactic patterns, this module also supports a more declarative syntax that enables developers to write clearer and more maintainable code.
+
+:::
+
+Each of these core features is described in detail throughout the sections below. For additional context on how to use this module in a front-end framework like [Vue](https://vuejs.org/) or [React](https://reactjs.org/), see the [Examples](/examples/) section of the documentation.
 
 ## Concepts
 
-The core concepts that need to be understood when using this module are:
+The core concepts that need to be understood when using this module (as with most state managers) are:
 
+* [Store](#store) - The central manager for accessing state, **committing** mutations, and **dispatching** actions.
 * [State](#state) - The global source of truth for data models in the application.
 * [Mutations](#mutations) - Operations that change state.
-* [Actions](#actions) - Syncronous or asyncronous processes that can **commit** mutations.
+* [Actions](#actions) - Synchronous or asynchronous processes that can execute (**commit**) mutations.
 * [Events](#events) - Operations that views and components can subscribe to for cascading updates.
 
-For additional context on how to use this module in a front-end framework like [Vue](https://vuejs.org/) or [React](https://reactjs.org/), see the [Examples](/examples/) section of the documentation.
+### The Central Dogma of State Management
+
+If you've taken any biology classes, you've probably heard of the "Central Dogma of Molecular Biology". State management has a similar dogma that holds true across any application:
+
+<img src="/central-dogma.png" width="700px" alt="Central Dogma of State Management" />
+
+
+### Why Use a State Manager?
+
+If you've built large applications with components and interactivity, you've likely used a state manager and understand the value. If you haven't, using a state manager is a way of simplifying the management of data and flow of events throughout your application. The diagram below shows an intuitive representation of the difference between an application without (left) and with (right) an application store:
+
+<img src="/state-network.png" width="700px" alt="State Network" />
+
+Without a centralized state manager, components must be responsible for dispatching to other components to re-render a view, which can increase the difficulty in maintaining a codebase. Web application development can be complex, and state managers like this one are a way to abstract some of that complexity so code can be written in a more sustainable way.
+
+
+## Store
+
+The **Store** is a singular entry-point for accessing state data, committing mutations, and dispatching actions that commit mutations to update state. Expanding on the [central dogma](#the-central-dogma-of-state-management) diagram above, a store manages data changes (and cascading view changes) like:
+
+<img src="/store-concept.png" width="600px" alt="Store Concept" />
+
+All of the **action**, **mutation** and **event** operations are managed by the store, so views and components can be developed in an isolated way.
+
+To create a store with this library, you simply need to define the **state**, **mutations**, and **actions** that the store should manage. For example, here is the store definition for a dead-simple `counter` application (if you've used `Vuex` before, you'll be familiar with the syntax):
+
+```javascript
+const store = new Store({
+  state: {
+    count: 0
+  },
+  mutations: {
+    increment(state) {
+      state.count++
+    }
+  },
+  actions: {
+    incrementAsync(store, number) {
+      return new Promise((resolve, reject) => {
+        store.commit('increment');
+        resolve();
+      });
+    }
+  }
+});
+```
+
+And once this is defined, you can use the store throughout your application like so:
+
+```javascript
+console.log(store.state.counter); // 0
+
+store.commit('increment');
+console.log(store.state.counter); // 1
+
+store.dispatch('incrementAsync').then(() => {
+  console.log(store.state.counter); // 2
+});
+```
+
+If you understand the core concepts and want to jump into real-world examples, see the [Examples](/examples/) section of the documentation.
 
 
 ## State
 
 Talk about the concept of state.
 
+State for a store can be as simple as:
+
+```javascript
+const state = {
+  counter: 0
+};
+```
+
+Or as complex as:
+
+```javascript
+const state = {
+  profile: {
+    username: 'me',
+  }
+  posts: [
+    { id: 1, title: 'Foo', body: '<div>foo</div>', author_id: 1 },
+    { id: 2, title: 'Bar', body: '<div>bar</div>', author_id: 1 },
+  ],
+  authors: [
+    { id: 1, name: 'Jane Doe' },
+  ]
+  ...
+};
+```
+
+
 All state variables should be set by mutations (not directly). The flow of events that happen during state updates is detailed in the [Mutations](#mutations) section below.
 
 ## Mutations
 
-Talk about the concept of mutations.
+Talk about the concept of mutations. ...
 
 Execution flow during a mutation looks something like this:
 
-<mermaid>
-graph TB
-  start([start]) --> commit["commit('increment')"]
-  commit --> execute
-  subgraph mutation
-  execute --> state
-  end
-  state --> idle([idle])
-  state --> publish[/publish/]
-</mermaid>
+<img src="/mutation-flow.png" width="500px" alt="Mutation Flow" />
 
 
 ## Actions
@@ -57,7 +153,7 @@ Talk about the concept of actions.
 
 Actions can be more complex than mutations, and accordingly provide guardrails around state changes throughout the lifecycle of an action. Here is a diagram detailing execution flow during an action:
 
-...
+<img src="/action-flow.png" width="500px" alt="Action Flow" />
 
 
 ## Events
@@ -113,6 +209,128 @@ await store.dispatch('addAsync', 1);
 // [INFO] `add` mutation called!
 // [INFO] `addAsync` action dispatched!
 ```
+
+
+## Test
+
+... talk about creating a shared set of API methods used throughout components in an applciation.
+
+**Method 1**:  
+
+Define API methods in a common
+
+```javascript
+// api.js
+import store from '@/store';
+
+function getDoneTodos() {
+  return store.state.todos.filter(x => x.done);
+}
+
+
+function fetchTodos() {
+  return axios.get('/todos').then(response => {
+    const todos = response.data;
+    store.commit('todos.sync', todos);
+    return todos;
+  });
+}
+
+function completeTodo(id) {
+   return axios.post(`/todos/${id}`).then(response => {
+     const todo = response.data;
+     store.commit('todos.sync', todo);
+     return todo;
+   });
+}
+```
+
+```javascript
+const todos = await fetchTodos();
+await completeTodo(todos[0].id);
+const done = getDoneTodos();
+```
+
+
+**Method 2**
+
+Define API methods as actions in the store:
+
+```javascript
+const state = {
+  todos: [],
+};
+
+const getters = {
+  getDoneTodos: state => state.todos.filter(x => x.done)
+}
+
+const actions = {
+  fetchTodos(store) {
+    return axios.get('/todos').then(response => {
+      const todos = response.data;
+      store.commit('todos.sync', todos);
+      return todos;
+    });
+  },
+  completeTodo(store, id) {
+    return axios.post(`/todos/${id}`).then(response => {
+      const todo = response.data;
+      store.commit('todos.sync', todo);
+      return todo;
+    });
+  }
+}
+
+const store = new Store({ state, getters, actions });
+```
+
+```javascript
+const todos = await store.dispatch('fetchTodos');
+await store.dispatch('completeTodo', todos[0].id);
+const done = store.get('doneTodos');
+```
+
+**Method 3**
+
+```javascript
+// api.js
+function fetchTodos() {
+  return axios.get('/todos').then(response => response.data);
+}
+
+function completeTodo(id) {
+   return axios.post(`/todos/${id}`).then(response => response.data);
+}
+
+const state = {
+  todos: [],
+};
+
+const getters = {
+  getDoneTodos: state => state.todos.filter(x => x.done)
+}
+
+const actions = {
+  fetchTodos: store.sync('todos', fetchTodos),
+  completeTodo: store.sync('todos', completeTodo),
+}
+
+state = new State({ state, getters, actions });
+```
+
+```javascript
+const todos = await store.dispatch('fetchTodos');
+await store.dispatch('completeTodo', todos[0].id);
+const done = store.get('doneTodos');
+```
+
+
+::: tip
+
+If you frequently work with data models throughout your applicaiton, see the [Auora](https://bprinty.github.io/auora) library for adding an ORM layer to your application. It integrates directly with this library and abstracts a lot of the boilerplate necessary for pulling data from an external API.
+
+:::
 
 
 ## Syntax

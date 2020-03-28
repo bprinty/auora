@@ -37,9 +37,9 @@ Provide an example of a minimal application using the package, with code.
 
 ## Table of Contents
 
-- [Setup](/guide/setup/README.md)
-- [Usage](/guide/usage/README.md)
-- [Examples](/guide/examples/README.md)
+- [Setup](/setup/README.md)
+- [Guide](/guide/README.md)
+- [Examples](/examples/README.md)
 - [API](/api/README.md)
 
 
