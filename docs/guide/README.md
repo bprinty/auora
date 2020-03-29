@@ -30,6 +30,12 @@ Along with standard syntactic patterns, this module also supports a more declara
 
 :::
 
+::: tip Framework Agnostic
+
+This library was built to work with any front-end framework (or without one), and also has thorough [Examples](/examples/) detailing how to best use this library within the context of several popular frameworks.
+
+:::
+
 Each of these core features is described in detail throughout the sections below. For additional context on how to use this module in a front-end framework like [Vue](https://vuejs.org/) or [React](https://reactjs.org/), see the [Examples](/examples/) section of the documentation.
 
 ## Concepts
@@ -49,6 +55,9 @@ If you've taken any biology classes, you've probably heard of the "Central Dogma
 <img src="/central-dogma.png" width="700px" alt="Central Dogma of State Management" />
 
 
+Most reactive web applications also connect to an external service for sending/receiving data (e.g. REST API), which makes can make this process difficult to manage without an abstraction.
+
+
 ### Why Use a State Manager?
 
 If you've built large applications with components and interactivity, you've likely used a state manager and understand the value. If you haven't, using a state manager is a way of simplifying the management of data and flow of events throughout your application. The diagram below shows an intuitive representation of the difference between an application without (left) and with (right) an application store:
@@ -66,18 +75,23 @@ The **Store** is a singular entry-point for accessing state data, committing mut
 
 All of the **action**, **mutation** and **event** operations are managed by the store, so views and components can be developed in an isolated way.
 
-To create a store with this library, you simply need to define the **state**, **mutations**, and **actions** that the store should manage. For example, here is the store definition for a dead-simple `counter` application (if you've used `Vuex` before, you'll be familiar with the syntax):
+To create a store with this library, you simply need to define the **state**, **mutations**, and **actions** that the store should manage. For example, here is a store definition showing all types of configuration for a `counter` application (if you've used `Vuex` before, you'll be familiar with the syntax):
 
 ```javascript
 const store = new Store({
+  // state
   state: {
     count: 0
   },
+
+  // mutations
   mutations: {
     increment(state) {
       state.count++
     }
   },
+
+  // actions
   actions: {
     incrementAsync(store, number) {
       return new Promise((resolve, reject) => {
@@ -85,9 +99,29 @@ const store = new Store({
         resolve();
       });
     }
+  },
+
+  // events
+  events: {
+    update: (param, state) => {
+      console.log(`[INFO] Incremented \`${param}\` to \`${state.counter}\``);
+    },
+    mutate: (mutation, state) => {
+      console.log(`[INFO] Finished committing mutation \`${mutation}\``);
+    },
+    action: (action, state) => {
+      console.log(`[INFO] Finished executing action \`${action}\``);
+    }
   }
 });
 ```
+
+The purpose of the store above is to:
+
+1. Store a `counter` variable that can update throughout the application.
+2. Add `mutations` that can change that `counter` variable.
+3. Create async `actions` that can **commit** those `mutations`.
+4. Bind callbacks to specific `events` that happen throughout data changes.
 
 And once this is defined, you can use the store throughout your application like so:
 
@@ -95,19 +129,32 @@ And once this is defined, you can use the store throughout your application like
 console.log(store.state.counter); // 0
 
 store.commit('increment');
-console.log(store.state.counter); // 1
+// [INFO] Incremented `counter` to `1`
+// [INFO] Finished committing mutation `increment`
 
-store.dispatch('incrementAsync').then(() => {
-  console.log(store.state.counter); // 2
-});
+await store.dispatch('incrementAsync');
+// [INFO] Incremented `counter` to `2`
+// [INFO] Finished committing mutation `increment`
+// [INFO] Finished executing action `incrementAsync`
 ```
 
-If you understand the core concepts and want to jump into real-world examples, see the [Examples](/examples/) section of the documentation.
+Now that we've described a high-level example of how to configure a [Store](#store), let's go into detail on how each component of a store can be configured.
+
+If you understand the core concepts and want to quickly jump into real-world examples, see the [Examples](/examples/) section of the documentation.
 
 
 ## State
 
-Talk about the concept of state.
+As mentioned before, `state` is the global source of truth for your application. Examples of data state parameters can store include:
+
+1. User profile metadata.
+2. Collections of model data for a specific view.
+3. User settings that affect how views display information.
+
+When rendering, views read from `state` and upon user interaction, run functions that update state:
+
+<img src="/state-concept.png" width="500px" alt="State Concept" />
+
 
 State for a store can be as simple as:
 
@@ -135,25 +182,322 @@ const state = {
 };
 ```
 
+The most important thing to understand about state is that **it should not be chaned directly**.
 
-All state variables should be set by mutations (not directly). The flow of events that happen during state updates is detailed in the [Mutations](#mutations) section below.
+::: tip NOTE
+
+State should **not be changed directly**. All state parameters should be changed within [Mutations](#mutations).
+
+:::
+
+All state variables should be set by mutations. Reasoning behind this and the flow of events that happen during state updates is detailed in the [Mutations](#mutations) section below.
+
+
+### Defining State
+
+To define a state parameter for your application, create a plain object and bind it to a **Store**:
+
+```javascript
+import { Store } from auora;
+
+const state = {
+  myParam: null,
+  myObject: {},
+  myArray: []
+}
+
+const store = new Store({ state });
+```
+
+Defaults you define as a part of state will be the default values immediately available in your application. All values must be plain objects.
+
+::: tip NOTE
+
+State and state values **must be plain objects**. State is meant to warehouse data, not functionality.
+
+:::
+
+### Using State
+
+In an application, you can use state as any other variable. Here is an example of how to use state in a [Vue](/examples/) component:
+
+```html
+<template>
+  <p>{{ counter }}</p>
+</template>
+
+<script>
+export default {
+  name: 'counter',
+  store: {
+    state: ['counter']
+  }
+}
+</script>
+```
+
+For examples of how to use state in other front-end frameworks, see the [Examples](/examples/) section of the documentation.
+
 
 ## Mutations
 
-Talk about the concept of mutations. ...
+In short, `mutations` are functions that update `state`. They wrap specific types of updates to a `state` parameter and provide structure around state modifications and the associated downstream effects. Examples of mutations that change state include:
 
-Execution flow during a mutation looks something like this:
+1. Updating user profile metadata after a request.
+2. Adding a model to a collection of models.
+3. Changing a user settings value.
+
+
+Mutations are used within API functions to update *state* and broadcast updates. Execution flow during a mutation looks something like this:
 
 <img src="/mutation-flow.png" width="500px" alt="Mutation Flow" />
 
 
+As you can see in the diagram above, mutations broadcast events throughout execution that parts of an application can hook into. Although not directly shown in the diagram, it is important to understand that **mutations** should be **syncronous** operations.
+
+
+::: tip NOTE
+
+All mutations should be **syncronous** operations. Asynchronous operations that update a store should be concfigured as [Actions](#actions).
+
+:::
+
+For more information on how to use **asynchronous** operations that commit mutations, see the [Actions](#actions) section below.
+
+
+### Defining Mutations
+
+To define a mutations for your application, create a plain object with the mutations and bind it to a **Store**:
+
+```javascript
+import { Store } from auora;
+
+const state = {
+  counter: 0,
+}
+
+const mutations = {
+  increment(state) {
+    state.counter += 1;
+  },
+  add(state, value) {
+    state.counter += value;
+  }
+}
+
+const store = new Store({ state, mutations });
+```
+
+Inputs to mutation functions include a copy of the `state` and any arguments passed to the mutation when ``commit`` is called.
+
+
+### Pre-defined Mutations
+
+When state variables are declared with this library, the following mutations are automatically created:
+
+| Name | Purpose |
+|------|---------|
+| `<param>` | Set the value of the state param. |
+| `<param>.reset` | Reset the state parameter back to its original value. |
+| `<param>.sync` | Update a new record or object key for a state param. See below. |
+| `<param>.add` | Add a new record or object key to a state param. See below. |
+| `<param>.remove` | Remove a new record or object key to a state param. See below. |
+
+
+These auto-generated mutations remove a lot of the boilerplate required for other libraries. For example, here is how you can quickly get up and running with these auto-defined mutations:
+
+```javascript
+const store = new Store({ state: { counter: 0 } });
+
+// set value of counter to 5
+store.commit('counter', 5);
+
+// increment counter
+store.commit('counter', store.state.counter + 1);
+
+// reset counter
+store.commit('counter.reset');
+```
+
+More complex mutations like *sync*, *add*, and *remove* are useful for updates to `Array` or `Object` state variables:
+
+```javascript
+const store = new Store({
+  state: {
+    myObj: {},
+    myArr: []
+  }
+});
+
+// add
+store.commit('myObj.add', 'name', 'foo');
+store.commit('myArr.add', { id: 1, name: 'bar' });
+/* contents of `store.state`
+{
+  myObj: {
+    name: 'foo'
+  },
+  myArr: [
+    { id: 1, name: 'bar' },
+  ]
+}
+*/
+
+// sync
+store.commit('myObj.sync', 'name', 'baz');
+store.commit('myArr.sync', { id: 1, name: 'baz' });
+/* contents of `store.state`
+{
+  myObj: {
+    name: 'baz'
+  },
+  myArr: [
+    { id: 1, name: 'baz' },
+  ]
+}
+*/
+
+// remove
+store.commit('myObj.remove', 'name');
+store.commit('myArr.remove', 1);
+/* contents of `store.state`
+{
+  myObj: {},
+  myArr: []
+}
+*/
+```
+
+Note from above that `sync` operations will automatically find and update records with a matching `id` (if the input is an object). If no `id` is in the object to sync, a new record will be added to the array. Similarly, `remove` operations will automatically find and remove records with a matching `id` if (records are objects). Otherwise, it will remove any entry equal to the supplied value. These two helpers are designed to help with managing data from an external API.
+
+
+### Using Mutations
+
+In an application, you should use mutations inside methods that execute when a user interacts with a view. To use a mutation, you use the `commit` method on `Store` objects:
+
+```javascript
+store.commit('increment')
+store.commit('add', 5)
+```
+
+Here is an example of how to use mutations in a [Vue](/examples/) component:
+
+```html
+<template>
+  <div>
+    <p>{{ counter }}</p>
+    <button @click="increment">Increment Counter</button>
+    <button @click="reset">Reset Counter</button>
+  </div>
+</template>
+
+<script>
+export default {
+  name: 'counter',
+  store: {
+    state: ['counter'],
+
+  },
+  methods() {
+    increment: () => this.$store.commit('increment');
+    reset: () => this.$store.commit('counter.reset');
+  }
+}
+</script>
+```
+
+For examples of how to commit mutations in other front-end frameworks, see the [Examples](/examples/) section of the documentation.
+
+
 ## Actions
 
-Talk about the concept of actions.
+At the top of the chain for cascading state changes are `actions`. When a user interacts with a page, they trigger *actions* that use *mutations* to update *state*. Actions represent more complex functionality that can change data across one or multiple state parameters in several stages. Examples of actions that trigger on user interaction include:
 
-Actions can be more complex than mutations, and accordingly provide guardrails around state changes throughout the lifecycle of an action. Here is a diagram detailing execution flow during an action:
+1. *PUT* requests to update user profile metadata.
+2. *POST* requests to create a new model in a collection.
+3. *GET* requests for fetching user settings information.
+
+Although actions will commonly wrap communication with an external service (i.e. REST API), they don't have to. They can also be either **syncronous** or **asynchronous**.
+
+Actions are generally more complex than mutations, and accordingly provide guardrails around state changes throughout the lifecycle of an action. Here is a diagram detailing execution flow during an action:
 
 <img src="/action-flow.png" width="500px" alt="Action Flow" />
+
+
+As you can see, the diagram above is a lot busier than the diagram we saw in the [Mutations](#mutations) section of the documentation. In addition to wrapping mutations, actions also **wrap state updates in transactions** so that errors that occur in the middle of action execution trigger a rollback to the previous state.
+
+::: tip
+
+If you don't care about transactional support in store actions, you can turn it off. See the [Configuration](/setup/README.md#configuration) section for more information.
+
+:::
+
+
+### Defining Actions
+
+To define actions that can be used throughout your application, create a plain object with the actions and bind it to a **Store**. In this example, we'll connect a counter to an external API:
+
+```javascript
+import { Store } from auora;
+
+const state = {
+  counter: 0,
+}
+
+const actions = {
+  increment(store) {
+    return axios.post('/counter/increment').then(response => {
+      store.commit('counter', response.data.result);
+    });
+  },
+  add(store, value) {
+    return axios.post('/counter/add', { value }).then(response => {
+      store.commit('counter', response.data.result);
+    });
+  }
+}
+
+const store = new Store({ state, mutations });
+```
+
+There are also alternative ways of defining actions that can fit better into different types of application architectures. See the [Patterns](#patterns) section below for more information about how you can define and organize actions in a large project.
+
+
+### Using Actions
+
+Actions should be triggered throughout your application whenever a user interacts with a view. To directly execute an action, you can use the `dispatch` method on `Store` objects:
+
+```javascript
+store.dispatch('increment').then(response => {
+  console.log('[INFO] Incremented counter and updated store!');
+});
+
+await store.dispatch('add', 5);
+```
+
+In an application, you should bind actions to user interaction on a view. Here is an example of how to use actions in a [Vue](/examples/) component:
+
+```html
+<template>
+  <div>
+    <p>{{ counter }}</p>
+    <button @click="increment">Increment Counter</button>
+    <button @click="add(5)">Add 5 to Counter</button>
+  </div>
+</template>
+
+<script>
+export default {
+  name: 'counter',
+  store: {
+    state: ['counter'],
+    actions: ['increment', 'add']
+  },
+}
+</script>
+```
+
+For examples of how to dispatch actions in other front-end frameworks, see the [Examples](/examples/) section of the documentation.
 
 
 ## Events
@@ -161,6 +505,19 @@ Actions can be more complex than mutations, and accordingly provide guardrails a
 Talk about subscribing to events.
 
 Events have been alluded to in previous sections ...
+
+This package utilizies a
+
+There are two types of events that can be subscribed to:
+
+1. [Global Events](#global-events) - Events that *publish* when **any** actions are dispatched, mutations are committed, and store parameters are changed.
+2. [Specific Events](#specific-events) - Events that *publish* when **specific** actions are dispatched, mutations are committed, and store parameters are changed.
+
+
+<!-- At the top of the chain for cascading state changes are `actions`. When a user interacts with a page, they trigger *actions* that use *mutations* to update *state*. Actions represent more complex functionality that can change data across one or multiple state parameters in several stages. Examples of actions that trigger on user interaction include: -->
+
+
+### Global Events
 
 The following global events are available
 
@@ -200,100 +557,19 @@ store.mutations.subscribe('add', () => {
 })
 
 // subscribe to action
-store.state.subscribe('addAsync', () => {
-  console.log('[INFO] `addAsync` action dispatched!');
+store.actons.subscribe('add', () => {
+  console.log('[INFO] `add` action dispatched!');
 });
 
-await store.dispatch('addAsync', 1);
+await store.dispatch('add', 1);
 // [INFO] `counter` changed!
 // [INFO] `add` mutation called!
-// [INFO] `addAsync` action dispatched!
+// [INFO] `add` action dispatched!
 ```
 
+### Specific Events
 
-## Test
-
-... talk about creating a shared set of API methods used throughout components in an applciation.
-
-**Method 1**:  
-
-Define API methods in a common
-
-```javascript
-// api.js
-import store from '@/store';
-
-function getDoneTodos() {
-  return store.state.todos.filter(x => x.done);
-}
-
-
-function fetchTodos() {
-  return axios.get('/todos').then(response => {
-    const todos = response.data;
-    store.commit('todos.sync', todos);
-    return todos;
-  });
-}
-
-function completeTodo(id) {
-   return axios.post(`/todos/${id}`).then(response => {
-     const todo = response.data;
-     store.commit('todos.sync', todo);
-     return todo;
-   });
-}
-```
-
-```javascript
-const todos = await fetchTodos();
-await completeTodo(todos[0].id);
-const done = getDoneTodos();
-```
-
-
-**Method 2**
-
-Define API methods as actions in the store:
-
-```javascript
-const state = {
-  todos: [],
-};
-
-const getters = {
-  getDoneTodos: state => state.todos.filter(x => x.done)
-}
-
-const actions = {
-  fetchTodos(store) {
-    return axios.get('/todos').then(response => {
-      const todos = response.data;
-      store.commit('todos.sync', todos);
-      return todos;
-    });
-  },
-  completeTodo(store, id) {
-    return axios.post(`/todos/${id}`).then(response => {
-      const todo = response.data;
-      store.commit('todos.sync', todo);
-      return todo;
-    });
-  }
-}
-
-const store = new Store({ state, getters, actions });
-```
-
-```javascript
-const todos = await store.dispatch('fetchTodos');
-await store.dispatch('completeTodo', todos[0].id);
-const done = store.get('doneTodos');
-```
-
-**Method 3**
-
-
+You can also subscribe to
 
 
 
@@ -302,201 +578,6 @@ const done = store.get('doneTodos');
 If you frequently work with data models throughout your applicaiton, see the [Auora](https://bprinty.github.io/auora) library for adding an ORM layer to your application. It integrates directly with this library and abstracts a lot of the boilerplate necessary for pulling data from an external API.
 
 :::
-
-
-## Syntax
-
-There are two supported paradigms for declaring store variables and their associated mutations/actions:
-
-1. Declarative - ...
-2. Explicit - ...
-
-
-
-You can also use this declarative mechanism for other Vuex state properties as well (even if you're not connecting to an external API):
-
-```javascript
-/**
-* Simple counter state property for counting something.
-*/
-const counter = {
-  default: 0,
-  mutations: {
-    increment: value => value + 1,
-  },
-  actions: {
-    add(value) => {
-      counter.state = counter.state + value;
-    }
-  }
-}
-
-// instantiate store with module
-store = new Store({
-  modules: {
-    counter,
-  },
-})
-```
-
-::: warning
-
-Talk about assumptions made by mutations with this syntax -> they're always used to update the specified property directly, so no ``state`` proxy needs to be passed in.
-
-:::
-
-Using this way of defining state properties, mutations for updating the data are automatically created for the store, along with any additional mutations provided for the property:
-
-```javascript
-// using it in the store
-store.state.counter; // get the state for counter
-store.commit('counter', 2); // set the counter value to `2`
-store.commit('increment'); // increment the counter
-```
-
-This may seem like a trivial syntactic pivot for non-API operations, but it becomes more useful when you're dealing with many state properties with lots of complexity. It also helps for maintainability to see all mutations/actions associated with a specific state property in the same block of code. Take the following code for example:
-
-```javascript
-const counter = {
-  default: 0,
-  type: Number,
-  mutations: {
-    increment: {
-      before: () => {},
-      apply: value => value + 1,
-      callback: () => {},
-    },
-  },
-  actions: {
-    add: {
-      before: () => {},
-      dispatch: (current, value) => {
-        return current + value;
-      },
-      callback: () => {},
-    }
-  }
-```
-
-```javascript
-const state = {
-  counter: 0,
-}
-const mutations = {
-  increment(state, value) {
-    state.counter = value;
-  }
-}
-const actions = {
-  add({ state, commit }, value) => {
-    commit('counter', state.value + value);
-  }
-}
-```
-
-
-
-```javascript
-/**
- * Simple counter state property for counting something.
- */
-const counter = {
-  default: 0,
-  type: Number,
-  mutations: {
-    increment: value => value + 1,
-    incrementBy: (value, extra) => value + extra,
-    decrement: value => value - 1,
-  },
-  actions: {
-    incrementAsync({ commit }) {
-      return new Promise((resolve, reject) => {
-        setTimeout(() => {
-          commit('increment');
-        }, 1000);
-      });
-    }),
-    incrementAndAdd({ commit }, value) {
-      commit('increment');
-      commit('incrementBy', value);
-    },
-  }
-}
-
-/**
- * Other dummy property for example.
- */
-const otherProperty = {
-  default: 'foo',
-  type: String,
-  mutations: {
-    addBar: value => `${value}bar`,
-  },
-  actions: {
-    postBar({ commit }) {
-      return axios.post('/api/bar');
-    }
-  }
-}
-
-// instantiate store with module
-store = new Store({
-  modules: {
-    counter,
-    otherProperty,
-  },
-})
-```
-
-This might be preferable (easier to understand/maintain) compared to how Vuex constructs are normally declared:
-
-```javascript
-const store = {
-  counter: 0,
-  otherProperty: 'foo',
-};
-
-const mutations = {
-  counter(state, value) {
-    state.counter = Number(value);
-  },
-  increment(state) {
-    state.count++;
-  },
-  incrementBy(state, extra) {
-    state.count + extra;
-  },
-  decrement(state){
-    state.count--;
-  },
-  otherProperty(state, value) {
-    state.otherProperty = String(value);
-  },
-  addBar(state) {
-    state.value = `${value}bar`;
-  },
-};
-
-const actions = {
-  incrementAsync({ commit }) {
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        commit('increment');
-      }, 1000);
-    });
-  }),
-  incrementAndAdd({ commit }, value) {
-    commit('increment');
-    commit('incrementBy', value);
-  },
-  postBar({ commit }) {
-    return axios.post('/api/bar');
-  }
-};
-```
-
-Obviously, syntactic preference is a subjective thing and changes based on differences in background and individual coding style. The main reason for introducing this more declarative syntax is because it is used for defining models for API endpoints.
-
 
 
 If you have any questions that aren't answered by this documentation, feel free to file a `documentation` issue in the [GitHub Issue Tracker](https://github.com/bprinty/jest-axios) for this project.

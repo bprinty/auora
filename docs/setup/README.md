@@ -21,3 +21,10 @@ To use this package via CDN, import it in your project via:
 ```html
 <script src="https://unpkg.com/auora/dist/index.min.js"></script>
 ```
+
+## Configuration
+
+There are several configuration options you can set when using this module ...
+
+
+** turn off transactional support **
