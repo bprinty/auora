@@ -421,7 +421,7 @@ Although actions will commonly wrap communication with an external service (i.e.
 
 Actions are generally more complex than mutations, and accordingly provide guardrails around state changes throughout the lifecycle of an action. Here is a diagram detailing execution flow during an action:
 
-<img src="/action-flow.png" width="500px" alt="Action Flow" />
+<img id="action-flow" src="/action-flow.png" width="500px" alt="Action Flow" />
 
 
 As you can see, the diagram above is a lot busier than the diagram we saw in the [Mutations](#mutations) section of the documentation. In addition to wrapping mutations, actions also **wrap state updates in transactions** so that errors that occur in the middle of action execution trigger a rollback to the previous state.
@@ -431,6 +431,27 @@ As you can see, the diagram above is a lot busier than the diagram we saw in the
 If you don't care about transactional support in store actions, you can turn it off. See the [Configuration](/setup/README.md#configuration) section for more information.
 
 :::
+
+### Rollbacks
+
+... talk about rollbacks ...
+
+
+```javascript
+const store = new Store({
+  state: { counter: 0 },
+  actions: {
+    error: (store) => {
+      store.commit('counter', 1); // update counter
+      return axios.get('/missing-url').then(() => store.commit('counter', 2));
+    }
+  }
+})
+```
+
+The action described for this store will 1) change the value of the `counter` state param, 2) try to fetch a URL that doesn't exist and throw an error, and 3) rollback the value of the `counter` variable to what it was before the action dispatched (`0`).
+
+<!-- For multiple asynchronous actions, the flow of transactional data management looks something like: -->
 
 
 ### Defining Actions
@@ -502,82 +523,157 @@ For examples of how to dispatch actions in other front-end frameworks, see the [
 
 ## Events
 
-Talk about subscribing to events.
+Now that we've covered the machinery to manage a data [Store](#store), let's talk about how to subscribe to events that take place throughout the lifecycle of store operations.
 
-Events have been alluded to in previous sections ...
+This package internally uses a [Publish-Subscribe](https://en.wikipedia.org/wiki/Publish%E2%80%93subscribe_pattern) pattern that users can subscribe to for executing functions when specific types of events take place. If you've seen the diagrams [above](#action-flow), you're already somewhat familiar with events that are broadcasted (*published*) throughout store operations.
 
-This package utilizies a
-
-There are two types of events that can be subscribed to:
+There are two types of events that are *published* throughout the execution of store processes:
 
 1. [Global Events](#global-events) - Events that *publish* when **any** actions are dispatched, mutations are committed, and store parameters are changed.
 2. [Specific Events](#specific-events) - Events that *publish* when **specific** actions are dispatched, mutations are committed, and store parameters are changed.
 
-
-<!-- At the top of the chain for cascading state changes are `actions`. When a user interacts with a page, they trigger *actions* that use *mutations* to update *state*. Actions represent more complex functionality that can change data across one or multiple state parameters in several stages. Examples of actions that trigger on user interaction include: -->
+Each of these are described in more detail below, along with examples of how to subscribe to each type of event.
 
 
 ### Global Events
 
-The following global events are available
+The following global events are *published* throughout the execution of store operations:
 
-| Event | When |
-|-------|------|
+| Event | Description |
+|-------|-------------|
 | `idle` | Execute when the state manager goes back into an `idle` state (no action, mutation, or state change is taking place). |
 | `update` | Execute after any `state` change takes place. |
-| `mutate` | Execute after any `mutation` is committed. |
-| `action` | Execute after any `action` is dispatched. |
+| `commit` | Execute after any `mutation` is committed. |
+| `dispatch` | Execute after any `action` is dispatched. |
+| `rollback` | Execute after any `rollback` operation takes place. |
 
-<!-- | `before-update` | Execute before any `state` change takes place. | -->
-<!-- | `before-mutate` | Execute before any `mutation` is committed. | -->
-<!-- | `before-action` | Execute before any `action` is dispatched. | -->
-
-To subscribe to these global events, use:
+To subscribe to these global events, use the `subscribe` method on `Store` objects:
 
 ```javascript
-store.subscribe('action', () => {
-  console.log('[INFO] Action dispatched!');
-});
-
-await store.dispatch('addAsync', 1);
-// [INFO] Action dispatched!
-```
-
-Along with these global events, you can subscribe to specific `state` changes, dispatched `actions`, or `mutation` commits. To subscribe to a specific mutation, use:
-
-```javascript
-// subscribe to state change
-store.state.subscribe('counter', () => {
-  console.log('[INFO] `counter` changed!');
-});
-
-// subscribe to mutation
-store.mutations.subscribe('add', () => {
-  console.log('[INFO] `add` mutation called!');
-})
-
-// subscribe to action
-store.actons.subscribe('add', () => {
-  console.log('[INFO] `add` action dispatched!');
+store.subscribe('action', (action, input) => {
+  console.log(`[INFO] Action \`${action}\`dispatched with input \`${input}\`!`);
 });
 
 await store.dispatch('add', 1);
-// [INFO] `counter` changed!
-// [INFO] `add` mutation called!
-// [INFO] `add` action dispatched!
+// [INFO] Action `add` dispatched with input `1`!
 ```
 
-### Specific Events
+Here's a more complete example showing subscriptions to the majority of event types:
 
-You can also subscribe to
+```javascript
+// idle
+store.subscribe('idle', () => {
+  console.log('[INFO] Store back to idle.');
+});
+
+// update
+store.subscribe('update', (param, value) => {
+  console.log(`[INFO] State param \`${param}\` updated to \`${value}\``);
+})
+
+// commit
+store.subscribe('commit', (mutation, input) => {
+  console.log(`[INFO] Mutation \`${mutation}\` committed with input \`${input}\``);
+})
+
+// dispatch\
+store.subscribe('dispatch', (action, input) => {
+  console.log(`[INFO] Action \`${action}\` dispatched with input \`${input}\``);
+});
 
 
+// dispatch action to show event publishing
+await store.dispatch('add', 5);
+/*
+[INFO] State param `counter` updated to `5`.
+[INFO] Mutation `add` committed with input `5`.
+[INFO] Action `add` dispatched with input `5`.
+[INFO] Store back to idle.
+*/
+```
 
-::: tip
+::: tip NOTE
 
-If you frequently work with data models throughout your applicaiton, see the [Auora](https://bprinty.github.io/auora) library for adding an ORM layer to your application. It integrates directly with this library and abstracts a lot of the boilerplate necessary for pulling data from an external API.
+Note that the code above is subscribing to the *termination* of **state**, **mutation**, and **action** execution. To subscribe to the beginning of these operations, prepend the name of the event with `before`. For example: `before-update`, `before-commit`, `before-action`, `before-rollback`.
 
 :::
 
 
-If you have any questions that aren't answered by this documentation, feel free to file a `documentation` issue in the [GitHub Issue Tracker](https://github.com/bprinty/jest-axios) for this project.
+### Specific Events
+
+Along with these global events, you can also subscribe to specific **state** changes, dispatched **actions**, or **mutation** commits. To subscribe to these events, call the `subscribe()` method available from the **Store** subsection you're interested in:
+
+```javascript
+store.state.subscribe('counter', (value) => {
+  console.log(`[INFO] Updated \`counter\` to \`${value}\``);
+});
+
+store.mutations.subscribe('increment', () => {
+  console.log(`[INFO] Committed mutation \`increment\``);
+});
+```
+
+More specifically, here is how to subscribe to several data updates and operations for one of the Stores we defined [above](#actions):
+
+```javascript
+const store = new Store({
+  state: { counter: 0 },
+  actions: {    
+    increment(store) {
+      return axios.post('/counter/increment').then(response => {
+        store.commit('counter', response.data.result);
+      });
+    },
+    add(store, value) {
+      return axios.post('/counter/add', { value }).then(response => {
+        store.commit('counter', response.data.result);
+      });
+    }
+  }
+});
+
+// subscribe to state change
+store.state.subscribe('counter', (input) => {
+  console.log(`[INFO] \`counter\` param changed to value \`${input}\``);
+});
+
+// subscribe to mutation
+store.mutations.subscribe('counter', (input) => {
+  console.log(`[INFO] \`counter\` mutation committed with input \`${input}\``);
+})
+
+// subscribe to action
+store.actons.subscribe('add', (input) => {
+  console.log(`[INFO] \`add\` action dispatched with input \`${input}\``);
+});
+
+
+// execute action
+await store.dispatch('increment');
+/*
+[INFO] `counter` param changed to value `1`
+[INFO] `counter` mutation committed with input `1`
+*/
+
+// execute other action with subscription
+await store.dispatch('add', 1);
+/*
+[INFO] `counter` param changed to value `2`
+[INFO] `counter` mutation committed with input `2`
+[INFO] `add` action dispatched with input `1`
+*/
+```
+
+<br />
+---
+---
+<br />
+
+
+::: danger THAT'S IT!
+
+You've reached the end of the user guide. Thanks for reading until the end!
+
+:::
+
+If you have any questions that aren't answered by this documentation, feel free to file a `documentation` issue in the [GitHub Issue Tracker](https://github.com/bprinty/auora) for this project.
