@@ -44,6 +44,11 @@ module.exports = {
               collapsable: false,
             },
             {
+              title: 'Patterns',
+              path: '/patterns/',
+              collapsable: false,
+            },
+            {
               title: 'Examples',
               path: '/examples/',
               collapsable: false,
