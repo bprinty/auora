@@ -81,13 +81,13 @@ To create a store with this library, you simply need to define the **state**, **
 const store = new Store({
   // state
   state: {
-    count: 0
+    counter: 0
   },
 
   // mutations
   mutations: {
     increment(state) {
-      state.count++
+      state.counter++
     }
   },
 
