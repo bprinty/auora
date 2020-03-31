@@ -1,19 +1,113 @@
 # Patterns
 
-As with any middleware library, there are architectural decisions developers need to make
+As with any middleware library, there are architectural decisions developers need to make so that they don't accrue technical debt over the lifecycle of the software they're developing. This section provides some detail and guidance around the nuances of different architectural patterns users might choose for their project. Here is an overview of what will be covered:
 
-
-1. [Declarative vs. Explicit](#declarative) syntax for defining **Store** configuration.
-2. [File Organization](#file-organization) describing how to ...
-3. [API Separation][#api-separation]
-4. [Modules](#modules)
+1. [Declarative Syntax](#declarative-syntax) - An alternative to the explicit syntax outlined in previous [sections](/guide/), which may help produce more readable and maintainable code (depending on developer preferences).
+2. [Application Structure](#application-structure) - Tips for how to structure large applications with complex stores.
+3. [Shared Actions](#shared-actions) - Guidelines for importing existing API utilities into a store as actions.
+4. [Modules](#modules) - How to use multiple stores in an application for different logical blocks of functionality.
 
 
 
 ::: warning organize below
 :::
 
-## Standard
+## Declarative Syntax
+
+
+## Application Structure
+
+
+## Shared Actions
+
+
+## Modules
+
+Modern web applications can be incredibly complex with multiple isolated blocks of functionality. For example, in the **Todo List** application referenced throughout this documentation, we might want to have separate stores for 1) managing a user's profile information, and 2) managing a user's todo list. Data management across each of those stores operates independently, so we don't technically need to make them connected in any way by putting them in the same store. Here is what defining multiple stores for that use case might look like:
+
+```javascript
+const profile = new Store({
+  state: {
+    name: '<anonymous>',
+  },
+  actions: {
+    login: (store, { email, password }) => {
+      return axios.post('/login').then(response => {
+        store.commit('name', response.data.name);
+      });
+    },
+  },
+})
+
+const todos = new Store({
+  state: {
+    todos: []
+  }
+  actions: {
+    fetch:
+    add:
+    complete:
+  }
+})
+
+
+await profile.dispatch('login', { email: '', password: '' });
+
+await todos.dispatch('fetch');
+
+```
+
+
+
+
+In a Vue project, declaring and binding multiple stores to the root **Vue** instance looks something like:
+
+```javascript
+import Auora from 'auora';
+import { Store } from 'auora';
+
+const moduleA = new Store({ ... });
+const moduleB = new Store({ ... });
+
+Vue.use(Auora);
+
+const app = new Vue({
+  store: {
+    moduleA,
+    moduleB,
+  }
+})
+```
+
+
+
+```html
+<template>
+  <div>
+    <p>{{ paramA1 }}</p>
+    <p>{{ paramB1 }}</p>
+    <button @click="actionB1">click me</button>
+  </div>
+</template>
+
+<script>
+export default {
+  name: 'moduleA',
+  store: {
+    moduleA: {
+      state: ['paramA1']
+    },
+    moduleB: {
+      state: ['paramB1'],
+      actions: ['actionB1']
+    }
+  }
+}
+</script>
+```
+
+<junkyard>
+
 
 Define API methods as actions in the store:
 
@@ -296,3 +390,5 @@ Obviously, syntactic preference is a subjective thing and changes based on diffe
 
 
 If you have any questions that aren't answered by this documentation, feel free to file a `documentation` issue in the [GitHub Issue Tracker](https://github.com/bprinty/jest-axios) for this project.
+
+</junkyard>
