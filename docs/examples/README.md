@@ -7,6 +7,7 @@ This section will detail code-heavy examples of how to use this library in speci
 
 And frameworks that will have future plugin support include (this list may change over time):
 
+* [Angular](https://angular.io/)
 * [React](https://reactjs.org/)
 * [Svelte](https://svelte.dev/)
 
@@ -340,6 +341,17 @@ export default {
 ...
 
 -->
+
+
+## Angular
+
+You can still use this library in a Angular project, but you'll currently need to figure out your own patterns for incorporating it. A native Angular plugin leveraging this library will be included in a future release.
+
+::: warning Help Wanted
+
+If you're a Angular Pro and would like to help out by working on a Angular plugin, please file a `discussion` ticket in the GitHub [Issue Tracker](https://github.com/bprinty/auora/issues) for this project.
+
+:::
 
 
 ## React
