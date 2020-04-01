@@ -1,6 +1,6 @@
 {
-  "name": "JS Package",
-  "short_name": "JS Package",
+  "name": "Auora",
+  "short_name": "Auora",
   "icons": [
     {
       "src": "/icons/android-chrome-192x192.png",
@@ -16,5 +16,5 @@
   "start_url": "/index.html",
   "display": "standalone",
   "background_color": "#fff",
-  "theme_color": "#3eaf7c"
+  "theme_color": "rgb(104, 48, 104)"
 }
