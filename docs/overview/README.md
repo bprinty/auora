@@ -30,7 +30,7 @@ Along with standard syntactic patterns, this module also supports a more declara
 
 :::
 
-::: tip Framework Agnostic
+::: tip Framework-Agnostic
 
 This library was built to work with any front-end framework (or without one), and also has thorough [Examples](/examples/) detailing how to best use this library within the context of several popular frameworks.
 
