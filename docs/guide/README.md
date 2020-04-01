@@ -1,42 +1,6 @@
 # Guide
 
-There are currently several broadly-adopted alternatives to state management for JavaScript applications (e.g. [Redux](https://github.com/reduxjs/redux), [MobX](https://github.com/mobxjs/mobx), [Vuex](https://github.com/vuejs/vuex), [Effector](https://github.com/zerobias/effector)). Each provide a unique developer experience and enforce a specific paradigm for changing state and broadcasting updates to linked views/components.
-
-### Why Make *Another* State Manager?
-
-This package is an alternative approach to the same problem, attempting to take the best ideas from each alternative listed above (and provide some new ones). It's meant to provide an all-in-one solution with an intuitive API that can easily fit into any frontend framework.
-
-The code for this project was initially developed as part of an all-purpose (frontend and backend) [ORM](https://bprinty.github.io/vuex-reflect), but after use and iteration has evolved into it's own thing.
-
-### How is this Library Different?
-
-Unique features provided by this library that aren't readily available in other state management libraries include:
-
-::: tip State Transactions
-
-Stores can be configured with optional transaction support in `actions` that will rollback `state` on errors during action execution.
-
-:::
-
-::: tip Multi-Layered Hooks
-
-Users can subscribe to both global events (i.e. `before-mutate`, `after-action`, etc ...), and *specific* actions, mutations, or changes to state variables.
-
-:::
-
-::: tip Declarative Syntax
-
-Along with standard syntactic patterns, this module also supports a more declarative syntax that enables developers to write clearer and more maintainable code.
-
-:::
-
-::: tip Framework Agnostic
-
-This library was built to work with any front-end framework (or without one), and also has thorough [Examples](/examples/) detailing how to best use this library within the context of several popular frameworks.
-
-:::
-
-Each of these core features is described in detail throughout the sections below. For additional context on how to use this module in a front-end framework like [Vue](https://vuejs.org/) or [React](https://reactjs.org/), see the [Examples](/examples/) section of the documentation.
+Below, we'll cover some core concepts that should be understood about state management, and how this library can make state management simpler.
 
 ## Concepts
 
