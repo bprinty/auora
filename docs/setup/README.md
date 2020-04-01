@@ -24,7 +24,25 @@ To use this package via CDN, import it in your project via:
 
 ## Configuration
 
-There are several configuration options you can set when using this module ...
+There are several configuration options you can change when using this module. The list below will likely grow throughout the lifecycle of this project:
 
+| Option | Description | Default |
+|--------|-------------|---------|
+| `transactions` | Toggle transactional support when *actions* are dispatched from store. Setting this value to `false` can improve performance. | `true` |
 
-** turn off transactional support **
+Here is how you can set specific options when creating [Store](/guide/README.md#store) objects from this library:
+
+```javascript
+const store = new Store({
+  state: { ... },
+  options: {
+    transactions: true,
+  }
+});
+```
+
+::: tip
+
+The code above also highlights all of option defaults.
+
+:::

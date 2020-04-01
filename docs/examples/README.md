@@ -9,7 +9,7 @@ And frameworks that will have future plugin support include (this list may chang
 
 * [Angular](https://angular.io/)
 * [React](https://reactjs.org/)
-* [Svelte](https://svelte.dev/)
+<!-- * [Svelte](https://svelte.dev/) -->
 
 
 ## Vue
@@ -364,7 +364,7 @@ If you're a React Pro and would like to help out by working on a React plugin, p
 
 :::
 
-
+<!--
 ## Svelte
 
 You can still use this library in a Svelte project, but you'll currently need to figure out your own patterns for incorporating it. A native Svelte plugin leveraging this library will be included in a future release.
@@ -373,4 +373,4 @@ You can still use this library in a Svelte project, but you'll currently need to
 
 If you're a Svelte Pro and would like to help out by working on a Svelte plugin, please file a `discussion` ticket in the GitHub [Issue Tracker](https://github.com/bprinty/auora/issues) for this project.
 
-:::
+::: -->
