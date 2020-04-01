@@ -1,5 +1,6 @@
 ---
 home: true
+heroImage: banner.png
 actionText: Get Started →
 actionLink: /overview/
 footer: MIT Licensed | Copyright © 2020-present Blake Printy
