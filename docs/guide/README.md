@@ -16,7 +16,7 @@ The core concepts that need to be understood when using this module (as with mos
 
 If you've taken any biology classes, you've probably heard of the "Central Dogma of Molecular Biology". State management has a similar dogma that holds true across any application:
 
-<img src="/central-dogma.png" width="700px" alt="Central Dogma of State Management" />
+<img :src="$withBase('/central-dogma.png')" width="700px" alt="Central Dogma of State Management" />
 
 
 Most reactive web applications also connect to an external service for sending/receiving data (e.g. REST API), which makes can make this process difficult to manage without an abstraction.
@@ -26,7 +26,7 @@ Most reactive web applications also connect to an external service for sending/r
 
 If you've built large applications with components and interactivity, you've likely used a state manager and understand the value. If you haven't, using a state manager is a way of simplifying the management of data and flow of events throughout your application. The diagram below shows an intuitive representation of the difference between an application without (left) and with (right) an application store:
 
-<img src="/state-network.png" width="700px" alt="State Network" />
+<img :src="$withBase('/state-network.png')" width="700px" alt="State Network" />
 
 Without a centralized state manager, components must be responsible for dispatching to other components to re-render a view, which can increase the difficulty in maintaining a codebase. Web application development can be complex, and state managers like this one are a way to abstract some of that complexity so code can be written in a more sustainable way.
 
@@ -35,7 +35,7 @@ Without a centralized state manager, components must be responsible for dispatch
 
 The **Store** is a singular entry-point for accessing state data, committing mutations, and dispatching actions that commit mutations to update state. Expanding on the [central dogma](#the-central-dogma-of-state-management) diagram above, a store manages data changes (and cascading view changes) like:
 
-<img src="/store-concept.png" width="600px" alt="Store Concept" />
+<img :src="$withBase('/store-concept.png')" width="600px" alt="Store Concept" />
 
 All of the **action**, **mutation** and **event** operations are managed by the store, so views and components can be developed in an isolated way.
 
@@ -117,7 +117,7 @@ As mentioned before, `state` is the global source of truth for your application.
 
 When rendering, views read from `state` and upon user interaction, run functions that update state:
 
-<img src="/state-concept.png" width="500px" alt="State Concept" />
+<img :src="$withBase('/state-concept.png')" width="500px" alt="State Concept" />
 
 
 State for a store can be as simple as:
@@ -214,7 +214,7 @@ In short, `mutations` are functions that update `state`. They wrap specific type
 
 Mutations are used within API functions to update *state* and broadcast updates. Execution flow during a mutation looks something like this:
 
-<img src="/mutation-flow.png" width="500px" alt="Mutation Flow" />
+<img :src="$withBase('/mutation-flow.png')" width="500px" alt="Mutation Flow" />
 
 
 As you can see in the diagram above, mutations broadcast events throughout execution that parts of an application can hook into. Although not directly shown in the diagram, it is important to understand that **mutations** should be **syncronous** operations.
@@ -385,7 +385,7 @@ Although actions will commonly wrap communication with an external service (i.e.
 
 Actions are generally more complex than mutations, and accordingly provide guardrails around state changes throughout the lifecycle of an action. Here is a diagram detailing execution flow during an action:
 
-<img id="action-flow" src="/action-flow.png" width="500px" alt="Action Flow" />
+<img id="action-flow" :src="$withBase('/action-flow.png')" width="500px" alt="Action Flow" />
 
 
 As you can see, the diagram above is a lot busier than the diagram we saw in the [Mutations](#mutations) section of the documentation. In addition to wrapping mutations, actions also **wrap state updates in transactions** so that errors that occur in the middle of action execution trigger a rollback to the previous state.
