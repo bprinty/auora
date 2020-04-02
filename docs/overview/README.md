@@ -1,5 +1,10 @@
 # Overview
 
+<script>
+// hide sub-headers for sidebar
+document.getElementsByClassName('sidebar-sub-headers')[0].style.display = 'none';
+</script>
+
 There are currently several broadly-adopted alternatives to state management for JavaScript applications (e.g. [Redux](https://github.com/reduxjs/redux), [MobX](https://github.com/mobxjs/mobx), [Vuex](https://github.com/vuejs/vuex), [Effector](https://github.com/zerobias/effector)). Each provide a unique developer experience and enforce a specific paradigm for changing state and broadcasting updates to linked views/components.
 
 ### Why Make *Another* State Manager?

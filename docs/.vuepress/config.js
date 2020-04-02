@@ -31,7 +31,6 @@ module.exports = {
               title: 'Overview',
               path: '/overview/',
               collapsable: false,
-              children: ['-']
             },
             {
               title: 'Setup',
@@ -53,11 +52,11 @@ module.exports = {
               path: '/examples/',
               collapsable: false,
             },
-            {
-              title: 'API',
-              path: '/api/',
-              collapsable: true,
-            },
+            // {
+            //   title: 'API',
+            //   path: '/api/',
+            //   collapsable: true,
+            // },
           ],
         }
       }
