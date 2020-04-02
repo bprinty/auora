@@ -8,21 +8,11 @@
 import { assert } from 'chai';
 
 
-// fixtures
-// --------
-beforeEach(() => {
-  console.log('Starting test session ...');
-});
-afterEach(() => {
-  console.log('Closing test session ...');
-});
-
-
 // tests
 // -----
-describe("main", () => {
+describe("setup", () => {
 
-  test("placeholder", async () => {
+  test("setup.options", async () => {
       assert.isTrue(true);
   });
 
