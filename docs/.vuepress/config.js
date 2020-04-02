@@ -4,7 +4,7 @@ module.exports = {
     '/': {
       lang: 'en-US',
       title: 'Auora',
-      description: 'State management that is 🔥💯',
+      description: '🦄 ~ Another state manager ~ 🔥',
       // description: 'Manage the state. Don\'t let it manage you.'
     }
   },
