@@ -102,19 +102,23 @@ class PublishingProxy {
  *     update/delete events.
  */
 class ObjectProxy extends PublishingProxy {
-  constructor(target, callback) {
+  constructor(target, callback, deep = true) {
     super(callback);
     self = this;
 
-    // proxify nested objects
+    // create backup
     const backup = Object.assign({}, target);
-    Object.keys(target).forEach(key => {
-      if (isObject(target[key])) {
-        target[key] = new ObjectProxy(target[key], callback);
-      } else if (isArray(target[key])) {
-        target[key] = new ArrayProxy(target[key], callback);
-      }
-    });
+
+    // proxify nested objects
+    if (deep) {
+      Object.keys(target).forEach(key => {
+        if (isObject(target[key])) {
+          target[key] = new ObjectProxy(target[key], callback);
+        } else if (isArray(target[key])) {
+          target[key] = new ArrayProxy(target[key], callback);
+        }
+      });
+    }
 
     // return proxy with callbacks for modifiers
     return new Proxy(target, {
@@ -141,13 +145,15 @@ class ObjectProxy extends PublishingProxy {
           // return update function
           return (values) => {
             // proxify nested objects
-            Object.keys(values).forEach(key => {
-              if (isObject(values[key])) {
-                values[key] = new ObjectProxy(values[key], callback);
-              } else if (isArray(target[key])) {
-                values[key] = new ArrayProxy(values[key], callback);
-              }
-            });
+            if (deep) {
+              Object.keys(values).forEach(key => {
+                if (isObject(values[key])) {
+                  values[key] = new ObjectProxy(values[key], callback);
+                } else if (isArray(target[key])) {
+                  values[key] = new ArrayProxy(values[key], callback);
+                }
+              });
+            }
 
             // assign data and publish
             obj = Object.assign(obj, values);
@@ -160,9 +166,9 @@ class ObjectProxy extends PublishingProxy {
 
       // setter with publish
       set(obj, prop, value) {
-        if (isObject(value)) {
+        if (isObject(value) && deep) {
           obj[prop] = new ObjectProxy(value, callback);
-        } else if (isArray(value)) {
+        } else if (isArray(value) && deep) {
           obj[prop] = new ArrayProxy(value, callback);
         } else {
           obj[prop] = value;
@@ -192,7 +198,7 @@ class ObjectProxy extends PublishingProxy {
  *     update/delete events.
  */
 class ArrayProxy extends PublishingProxy {
-  constructor(target, callback) {
+  constructor(target, callback, deep = true) {
     super(callback);
     self = this;
 
@@ -207,14 +213,16 @@ class ArrayProxy extends PublishingProxy {
     });
 
     // proxy nested data
-    target = target.map((x) => {
-      if (isObject(x)) {
-        return new ObjectProxy(x, callback);
-      } else if (isArray(x)) {
-        return new ArrayProxy(x, callback);
-      }
-      return x;
-    });
+    if (deep) {
+      target = target.map((x) => {
+        if (isObject(x)) {
+          return new ObjectProxy(x, callback);
+        } else if (isArray(x)) {
+          return new ArrayProxy(x, callback);
+        }
+        return x;
+      });
+    }
 
     // return proxy with callbacks for modifiers
     return new Proxy(target, {
@@ -252,9 +260,9 @@ class ArrayProxy extends PublishingProxy {
 
       // set with publish
       set(obj, prop, value) {
-        if (isObject(value)) {
+        if (isObject(value) && deep) {
           obj[prop] = new ObjectProxy(value, callback);
-        } else if (isArray(value)) {
+        } else if (isArray(value) && deep) {
           obj[prop] = new ArrayProxy(value, callback);
         } else {
           obj[prop] = value;
