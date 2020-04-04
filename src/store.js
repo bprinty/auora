@@ -12,20 +12,7 @@
 //
 // Might need to manage full (throughout execution) 1. active store, 2. backup store, 3. default store
 
-
-/**
- * Check if object is empty
- */
-function isEmpty(obj) {
-  return Object.keys(obj).length === 0 && obj.constructor === Object;
-}
-
-/**
- * Check if object is promise.
- */
-function isPromise(obj) {
-  return typeof obj !== 'undefined' && typeof obj.then === 'function';
-}
+import { isEmpty, isObject, isFunction, isPromise, isUndefined } from './utils';
 
 
 /**
@@ -39,69 +26,6 @@ const status = {
   MUTATE: 'mutate',
   ACTION: 'action',
 };
-
-
-/**
- * Simple publish-subscribe manager for executing events
- * on state changes.
- */
-export class PubSub {
-  /**
-   * Create a new pubsub helper
-   */
-  constructor() {
-    this.events = {};
-  }
-
-  /**
-   * Subscribe to specific event.
-   *
-   * @param {string} event - Event name to subscribe to.
-   * @param {function} callback - Function to call on event.
-   */
-  subscribe(event, callback) {
-    const self = this;
-
-    // sync callback list
-    if (!(event in self.events)) {
-      self.events[event] = [];
-    }
-    return self.events[event].push(callback);
-  }
-
-  /**
-   * Subscribe to specific event.
-   *
-   * @param {string} event - Event name to broadcast.
-   * @param {object} payload - Arguments to pass to event callbacks.
-   */
-  publish(event, ...payload) {
-    const self = this;
-
-    // complete event chain if it exists
-    if (!(event in self.events)) {
-      return [];
-    }
-
-    // TODO: EMBED CALLBACKS IN TRY BLOCK?
-    return self.events[event].map(callback => callback(...payload));
-  }
-}
-
-/**
- * Helper functions
- */
-function isArray(obj) {
-  return Array.isArray(obj);
-}
-
-function isObject(obj) {
-  return (typeof obj === 'object') && (obj !== null);
-}
-
-function isUndefined(obj) {
-  return typeof obj === 'undefined';
-}
 
 
 /**
