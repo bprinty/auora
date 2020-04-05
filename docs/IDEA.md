@@ -6,6 +6,7 @@
 const store = new Store({
   state: {
     counter: 0,
+    status: 'idle',
     history: [0],
     model: {
       1 : { id: 1, foo: 'bar' }
@@ -13,19 +14,33 @@ const store = new Store({
   },
   actions: {
       add({ state }, value) {
+        commit('SET_STATUS', 'running');
+        state.commit();
         return axios.post('/counter/add', { value }).then(response => {
-          state.tree[state.counter] = response.data.result;
-          state.counter = response.data.result;
-          state.history.push(state.counter);
+          commit('SET_COUNTER', response.data.result)
+        }).finally(() => {
+          commit('SET_STATUS', 'idle');
         });
       },
-      increment({ state }, value) {
-        return axios.post('/counter/increment', { value }).then(response => {
-          state.tree[state.counter] = response.data.result;
+
+      // vs
+
+      add({ state }, value) {
+        state.commit({ status: 'running' });
+        return axios.post('/counter/add', { value }).then(response => {
           state.counter = response.data.result;
-          state.history.push(state.counter);
+        }).finally(() => {
+          state.status = 'running';
         });
       },
+
+      // increment({ state }, value) {
+      //   return axios.post('/counter/increment', { value }).then(response => {
+      //     state.tree[state.counter] = response.data.result;
+      //     state.counter = response.data.result;
+      //     state.history.push(state.counter);
+      //   });
+      // },
   }
 });
 ```
@@ -40,34 +55,39 @@ this.active = []; // array of active promises
 
 ...
 
-// all actions are wrapped as promises
-const action = this.actions[name];
+dispatch(name, ...payload) {
 
-// if there's currently a change in-flight
-if (this.lock === undefined) {
-  this.lock = deepCopy(this.state);
+    // all actions are wrapped as promises
+  const action = this.actions[name];
+
+  // if there's currently a change in-flight
+  if (this.transaction === undefined) {
+    this.begin(); // begin transaction
+  }
+
+  // dispatch action with state lock
+  const id = uuid();
+  this.active.push(id);
+
+  action({ state: this.transaction }, ...payload).then(() => {
+    this.transaction.commit(); // set new state
+    if (debug) {
+      snapshot(newState);
+    }
+  }).finally(() => {
+    this.active.pop(id);
+    if (this.active.length) {
+      this.transaction = undefined;
+    }
+  });
+
 }
 
-// dispatch action with state lock
-const id = uuid();
-this.active.push(id);
+begin() {
+  this.transaction
+}
 
-action({ state: this.lock }, ...payload).then(() => {
-  const newState = deepCopy(this.lock);
-  this.lock = newState; // ???
-  this.state = newState;
-  if (debug) {
-    snapshot(newState);
-  }
-}).finally(() => {
-  this.active.pop(id);
-  if (this.active.length) {
-    this.lock = undefined;
-  }
-});
 ```
-
-Dispatch action -> add to state Queue.
 
 
 
