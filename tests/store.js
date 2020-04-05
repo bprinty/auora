@@ -12,51 +12,47 @@ import Store from '../src/store';
 // ------
 export default new Store({
   state: {
+    status: 'off',
     counter: 0,
-    array: [
-      { id: 1, foo: 'bar' },
-    ],
-    object: {
-      foo: 'bar',
-    },
-  },
-  mutations: {
-    increment(state) {
-      state.counter += 1;
-    },
-    add(state, number) {
-      state.counter += number;
-    },
+    history: [0],
+    operations: [],
   },
   actions: {
     // sync action
-    subtract(store, number) {
-      const result = store.state.counter - number;
-      store.commit('counter', result);
-      return result;
+    increment({ state }) {
+      state.counter += 1;
+      return state.counter;
     },
 
     // async action
-    add(store, number) {
+    add({ state }, number) {
       return new Promise((resolve) => {
-        const result = store.state.counter + number;
-        store.commit('counter', result);
-        resolve(result);
+        state.counter = state.counter + number;
+        resolve(state.counter);
       });
     },
 
-    // failing action
-    multiply(store, number, error = false) {
-      return new Promise((resolve, reject) => {
-        const value = store.state.counter;
-        for (let i = 1; i < number; i += 1) {
-          store.commit('add', value);
-          if (error) {
-            reject(new Error());
-          }
-        }
-        resolve();
+    // async action with status update
+    multiply({ state }, fold) {
+      state.commit({ status: 'running' });
+      return new Promise((resolve) => {
+        state.counter = state.counter * fold;
+        resolve(state.counter);
+      }).finally(() => {
+        state.status = 'idle';
       });
     },
   },
+  subscribe: {
+    counter({ state }) {
+      state.history.push(state.counter);
+    },
+  },
+  events: {
+    // update
+    // commit
+    dispatch({ state }, name, ...inputs) {
+      state.operations.push(name);
+    }
+  }
 });
