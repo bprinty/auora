@@ -21,129 +21,71 @@ import { isEmpty, isObject, isFunction, isPromise, isUndefined } from './utils';
 const status = {
   IDLE: 'idle',
   RESET: 'reset',
-  ROLLBACK: 'rollback',
   UPDATE: 'update',
-  MUTATE: 'mutate',
-  ACTION: 'action',
+  COMMIT: 'commit',
+  DISPATCH: 'dispatch',
 };
 
 
-/**
- * Default mutation
- */
-function setState(key) {
-  return (state, value) => {
-    state[key] = value;
-  };
-}
 
-function resetState(key, value) {
-  return (state) => {
-    state[key] = value;
-  };
-}
-
-function syncState(key) {
-  return (state, id, value) => {
-    // array
-    if (isArray(state[key])) {
-
-      // normalize inputs
-      let input = id;
-      if (!isArray(input)) {
-        input = [input];
+class StateProxy {
+  constructor(state) {
+    const self = this;
+    self.$state = state;
+    self.$backup = deepClone(state);
+    self.$stage = deepClone(state);
+    return new Proxy(this, {
+      get: (obj, key) => {
+        if (key in self.$stage) {
+          return self.$stage[key];
+        }
+        return obj[key];
+      },
+      set: (obj, key, value) => {
+        self.$stage[key] = value;
+        return true;
       }
+    })
+  }
 
-      // traverse inputs and process
-      input.map(item => {
-        if (!isObject(item) || !('id' in item)) {
-          throw new Error('Cannot use `sync` for array state without indexed object inputs');
-        }
+  /**
+   * Sync clone with current data in store.
+   */
+  sync() {
+    self.$stage = Object.assign(self.$stage, deepClone(self.$state));
+  }
 
-        // go through state and update item
-        let updated = false;
-        for (let idx=0; idx < state[key].length; idx += 1) {
-          if (isObject(state[key][idx]) && 'id' in state[key][idx]) {
-            if (state[key][idx].id === item.id) {
-              state[key][idx] = Object.assign(state[key][idx], item);
-              updated = true;
-              break;
-            }
-          }
-        }
+  /**
+   * Reset transaction data back into state of initial clone.
+   */
+  reset() {
+    self.$stage = Object.assign(self.$stage, deepClone(self.$backup));
+  }
 
-        // push onto state if not an update
-        if (!updated) {
-          state[key].push(item);
-        }
-      });
+  /**
+   * Commit changes to store. If no object is specified,
+   * this method will commit the current state of the state
+   * clone to the store and refresh the clone. If an object,
+   * is specified, that object will be committed to the state and
+   * the clone simultaneously.
+   *
+   * @param {object} values - Values to commit to state.
+   */
+  commit(values) {
+    // save input values in stage before commit
+    if (isObject(values)) {
+      self.$stage = Object.assign(self.$stage, values);
 
-    // object
-    } else if (isObject(state[key])) {
-
-      // normalize inputs
-      let input = {};
-      if (isObject(id)) {
-        input = id;
-      } else {
-        input[id] = value;
-      }
-
-      // go through keys and process update
-      Object.keys(input).forEach(k => {
-        const v = input[k];
-
-        // handle nested object
-        if (isObject(state[key][k]) && isObject(v)) {
-          state[key][k] = Object.assign(state[key][k], v);
-        }
-
-        // no nested object
-        else {
-          state[key][k] = v;
-        }
-      });
-
-    // other
+    // set comittable values to current stage
     } else {
-      throw new Error('Cannot use `update` mutation for non Array/Object types.');
+      values = self.$stage
     }
-  };
+
+    // commit to state
+    self.$state = Object.assign(self.$state, deepClone(values));
+  }
 }
 
-function addState(key) {
-  return (state, ...args) => {
-    // array
-    if (isArray(state[key])) {
-      console.log('update');
-
-    // object
-    } else if (isObject(state[key])) {
-      console.log('update');
-
-    // other
-    } else {
-      throw new Error('Cannot use `add` mutation for non Array/Object types.');
-    }
-  };
-}
-
-function removeState(key) {
-  return (state, ...args) => {
-    // array
-    if (isArray(state[key])) {
-      console.log('update');
-
-    // object
-    } else if (isObject(state[key])) {
-      console.log('update');
-
-    // other
-    } else {
-      throw new Error('Cannot use `add` mutation for non Array/Object types.');
-    }
-  };
-}
 
 
 /**
@@ -159,39 +101,47 @@ export default class Store {
   constructor(params = {}) {
     const self = this;
 
-    // set from inputs
-    self.mutations = params.mutations || {};
-    self.actions = params.actions || {};
+    // set default options
     self.options = params.options || {
-
-      // TODO: FIGURE OUT HOW TO INCLUDE ROLLBACKS IN ACTIONS THAT
-      //       COMMIT ONE OR MULTIPLE TIMES TO THE STORE
-      rollback: true,
+      type: 'transactional',
     };
 
-    // default mutations
-    Object.keys(params.state).forEach((key) => {
-      self.mutations[key] = setState(key);
-      self.mutations[`${key}.reset`] = resetState(key, params.state[key]);
-      self.mutations[`${key}.sync`] = syncState(key);
-      self.mutations[`${key}.add`] = addState(key);
-      self.mutations[`${key}.remove`] = removeState(key);
+    // set from inputs
+    self.mutations = params.mutations || {};
+
+    // create actions proxy
+    self.actions = new Proxy(params.actions || {}, {
+      get(obj, name) {
+        if (name in obj) {
+          return (...payload) => {
+            return obj[name](self, ...payload);
+          }
+        }
+      }
     });
 
     // initialize
     self.status = status.IDLE;
     self.events = new PubSub();
     self.defaults = Object.assign({}, params.state);
-    self.backup = {};
 
-    // create proxy for state helper
+    // create proxy for state to publish events
     self.state = new Proxy(params.state || {}, {
+      // get: (state, key) => {
+      //   if (key === 'commit') {
+      //     return (payload) => {
+      //       state = Object.assign({})
+      //     }
+      //   }
+      // },
       set: (state, key, value) => {
         const before = self.status;
 
-        // protect against state changes outside of mutations
-        if (![status.MUTATE, status.RESET, status.ROLLBACK].includes(self.status)) {
-          throw new Error(`State variable ${key} should not be directly set outside of mutation.`);
+        // protect against state changes outside of mutations (strict mode)
+        if (self.options.type === 'strict') {
+          if (![status.COMMIT, status.RESET].includes(self.status)) {
+            throw new Error(`State variable ${key} should not be directly set outside of mutation.`);
+          }
         }
 
         // set value
@@ -199,154 +149,25 @@ export default class Store {
         state[key] = value;
 
         // emit after
-        self.events.publish(`state-${key}`);
         self.events.publish(status.UPDATE);
         self.status = before;
         return true;
       },
     });
+
+    // create stage for state transactions
+    self.stage = StateProxy(self.state);
   }
 
   /**
    * Proxy for subscribing to events tracked by store.
+   *
    * @param {string} event - Event name to broadcast.
    * @param {object} payload - Arguments to pass to event callbacks.
    */
   subscribe(event, callback) {
     const self = this;
     self.events.subscribe(event, callback);
-  }
-
-  /**
-   * Proxy for subscribing to specific action tracked by store.
-   * @param {string} state - State variable to subscribe to.
-   * @param {object} payload - Arguments to pass to event callbacks.
-   */
-  subscribeState(state, callback) {
-    const self = this;
-    self.events.subscribe(`state-${state}`, callback);
-  }
-
-  /**
-   * Proxy for subscribing to specific action tracked by store.
-   * @param {string} mutation - Mutation name to subscribe to.
-   * @param {object} payload - Arguments to pass to event callbacks.
-   */
-  subscribeMutation(mutation, callback) {
-    const self = this;
-    self.events.subscribe(`mutation-${mutation}`, callback);
-  }
-
-  /**
-   * Proxy for subscribing to specific action tracked by store.
-   * @param {string} action - Action name to subscribe to.
-   * @param {object} payload - Arguments to pass to event callbacks.
-   */
-  subscribeAction(action, callback) {
-    const self = this;
-    self.events.subscribe(`action-${action}`, callback);
-  }
-
-  /**
-   * Begin transaction, saving state backup information.
-   */
-  begin() {
-    const self = this;
-
-    // copy current state for potential rollback
-    self.backup = {};
-    Object.keys(self.state).forEach((key) => {
-      self.backup[key] = self.state[key];
-    });
-  }
-
-  /**
-   * Close transaction, changing state back to idle status.
-   */
-  close() {
-    const self = this;
-    self.status = status.IDLE;
-    self.backup = {};
-    self.events.publish(status.IDLE);
-  }
-
-
-  /**
-   * Reset all store values back to initial state.
-   */
-  reset() {
-    const self = this;
-    this.status = status.RESET;
-    self.state = Object.assign(self.state, this.defaults);
-    self.events.publish(status.RESET);
-    self.close();
-  }
-
-  /**
-   * Rollback state data to internal backup.
-   */
-  rollback() {
-    const self = this;
-    const before = self.status;
-    if (self.options.rollback && !isEmpty(self.backup)) {
-      self.status = status.ROLLBACK;
-      self.state = Object.assign(self.state, self.backup);
-      self.backup = {};
-      self.events.publish(status.ROLLBACK);
-      self.status = before;
-    }
-  }
-
-
-  /**
-   * Dispatch method for dispatching new actions managed by the store.
-   *
-   * @param {string} name - Name of action to dispatch.
-   * @param {object} payload - Arguments for action.
-   */
-  async dispatch(name, ...payload) {
-    const self = this;
-
-    // assert action exists
-    if (typeof self.actions[name] !== 'function') {
-      throw new Error(`Action ${name} does not exist.`);
-    }
-
-    // change status and open transaction
-    self.status = status.ACTION;
-    self.begin();
-
-    // dispatch and handle response
-    let result;
-    try {
-      result = self.actions[name](self, ...payload);
-
-    // catch sync error and rollback
-    } catch (err) {
-      self.rollback();
-      throw err;
-
-    // close transaction
-    } finally {
-      if (!isPromise(result)) {
-        self.events.publish(`action-${name}`);
-        self.events.publish(status.ACTION);
-        self.close();
-      }
-    }
-
-    // handle async results
-    if (isPromise(result)) {
-      result.catch(() => {
-        self.rollback();
-      }).finally(() => {
-        self.events.publish(`action-${name}`);
-        self.events.publish(status.ACTION);
-        self.close();
-      });
-    }
-
-    return result;
   }
 
 
@@ -366,13 +187,16 @@ export default class Store {
     }
 
     // emit before and open transaction
-    self.status = status.MUTATE;
+    self.status = status.COMMIT;
 
     // issue mutation and update state
+    if (this.stage === null) {
+      this.stage = self.state.clone();
+    }
     let result;
     try {
-      result = self.mutations[name](self.state, ...payload);
-      self.state = Object.assign(self.state, result);
+      result = self.mutations[name](this.stage, ...payload);
+      this.stage.commit();
 
     // handle exception and rollback
     } catch (err) {
@@ -380,13 +204,66 @@ export default class Store {
 
     // close transaction
     } finally {
-      self.events.publish(`mutation-${name}`);
-      self.events.publish(status.MUTATE);
+      self.events.publish(status.COMMIT);
       self.status = before;
       if (self.status === status.IDLE) {
+        self.stage = null;
         self.events.publish(status.IDLE);
       }
     }
+    return result;
+  }
+
+  /**
+   * Dispatch method for dispatching new actions managed by the store.
+   *
+   * @param {string} name - Name of action to dispatch.
+   * @param {object} payload - Arguments for action.
+   */
+  async dispatch(name, ...payload) {
+    const self = this;
+
+    // assert action exists
+    if (typeof self.actions[name] !== 'function') {
+      throw new Error(`Action ${name} does not exist.`);
+    }
+
+    // change status and open transaction
+    self.status = status.ACTION;
+    const localState = self.state.clone();
+
+    // dispatch and handle response
+    let result;
+    try {
+      result = self.actions[name](...payload);
+
+      // handle async results
+      if (isPromise(result)) {
+        result.catch(() => {
+          self.rollback();
+        }).finally(() => {
+          self.events.publish(status.DISPATCH);
+          self.close();
+        });
+      } else {
+        localState.commit();
+      }
+
+    // catch sync error and rollback
+    } catch (err) {
+      self.rollback();
+      throw err;
+
+    // close transaction
+    } finally {
+      if (!isPromise(result)) {
+        self.events.publish(status.DISPATCH);
+        self.close();
+      }
+    }
+
+
+
     return result;
   }
 }
