@@ -23,7 +23,7 @@ const counter = {
     increment: value => value + 1,
   },
   actions: {
-    increment(value) => {
+    increment(value) {
       return axios.post('/counter/increment').then(response => response.data.result);
     }
   }
@@ -349,7 +349,7 @@ When working on a large applcation with c
 import { map } from 'auora';
 
 function incrementCounter() {
-  return axios.post('/counter/increment').then(response => response.data.result);
+  return axios.post('/counter/').then(response => response.data.result);
 }
 
 function addToCounter(value) {

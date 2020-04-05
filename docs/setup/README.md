@@ -29,6 +29,7 @@ There are several configuration options you can change when using this module. T
 | Option | Description | Default |
 |--------|-------------|---------|
 | `transactions` | Toggle transactional support when *actions* are dispatched from store. Setting this value to `false` can improve performance. | `true` |
+| `strict` | Require users to only change state through mutations, and don't track changes to deeply nested properties. | `false` |
 
 Here is how you can set specific options when creating [Store](/guide/README.md#store) objects from this library:
 
@@ -37,6 +38,7 @@ const store = new Store({
   state: { ... },
   options: {
     transactions: true,
+    strict: false,
   }
 });
 ```

@@ -12,20 +12,7 @@
 //
 // Might need to manage full (throughout execution) 1. active store, 2. backup store, 3. default store
 
-
-/**
- * Check if object is empty
- */
-function isEmpty(obj) {
-  return Object.keys(obj).length === 0 && obj.constructor === Object;
-}
-
-/**
- * Check if object is promise.
- */
-function isPromise(obj) {
-  return typeof obj !== 'undefined' && typeof obj.then === 'function';
-}
+import { isEmpty, isObject, isFunction, isPromise, isUndefined } from './utils';
 
 
 /**
@@ -42,50 +29,120 @@ const status = {
 
 
 /**
- * Simple publish-subscribe manager for executing events
- * on state changes.
+ * Default mutation
  */
-export class PubSub {
-  /**
-   * Create a new pubsub helper
-   */
-  constructor() {
-    this.events = {};
-  }
+function setState(key) {
+  return (state, value) => {
+    state[key] = value;
+  };
+}
 
-  /**
-   * Subscribe to specific event.
-   *
-   * @param {string} event - Event name to subscribe to.
-   * @param {function} callback - Function to call on event.
-   */
-  subscribe(event, callback) {
-    const self = this;
+function resetState(key, value) {
+  return (state) => {
+    state[key] = value;
+  };
+}
 
-    // sync callback list
-    if (!(event in self.events)) {
-      self.events[event] = [];
+function syncState(key) {
+  return (state, id, value) => {
+    // array
+    if (isArray(state[key])) {
+
+      // normalize inputs
+      let input = id;
+      if (!isArray(input)) {
+        input = [input];
+      }
+
+      // traverse inputs and process
+      input.map(item => {
+        if (!isObject(item) || !('id' in item)) {
+          throw new Error('Cannot use `sync` for array state without indexed object inputs');
+        }
+
+        // go through state and update item
+        let updated = false;
+        for (let idx=0; idx < state[key].length; idx += 1) {
+          if (isObject(state[key][idx]) && 'id' in state[key][idx]) {
+            if (state[key][idx].id === item.id) {
+              state[key][idx] = Object.assign(state[key][idx], item);
+              updated = true;
+              break;
+            }
+          }
+        }
+
+        // push onto state if not an update
+        if (!updated) {
+          state[key].push(item);
+        }
+      });
+
+    // object
+    } else if (isObject(state[key])) {
+
+      // normalize inputs
+      let input = {};
+      if (isObject(id)) {
+        input = id;
+      } else {
+        input[id] = value;
+      }
+
+      // go through keys and process update
+      Object.keys(input).forEach(k => {
+        const v = input[k];
+
+        // handle nested object
+        if (isObject(state[key][k]) && isObject(v)) {
+          state[key][k] = Object.assign(state[key][k], v);
+        }
+
+        // no nested object
+        else {
+          state[key][k] = v;
+        }
+      });
+
+    // other
+    } else {
+      throw new Error('Cannot use `update` mutation for non Array/Object types.');
     }
-    return self.events[event].push(callback);
-  }
+  };
+}
 
-  /**
-   * Subscribe to specific event.
-   *
-   * @param {string} event - Event name to broadcast.
-   * @param {object} payload - Arguments to pass to event callbacks.
-   */
-  publish(event, ...payload) {
-    const self = this;
+function addState(key) {
+  return (state, ...args) => {
+    // array
+    if (isArray(state[key])) {
+      console.log('update');
 
-    // complete event chain if it exists
-    if (!(event in self.events)) {
-      return [];
+    // object
+    } else if (isObject(state[key])) {
+      console.log('update');
+
+    // other
+    } else {
+      throw new Error('Cannot use `add` mutation for non Array/Object types.');
     }
+  };
+}
 
-    // TODO: EMBED CALLBACKS IN TRY BLOCK?
-    return self.events[event].map(callback => callback(...payload));
-  }
+function removeState(key) {
+  return (state, ...args) => {
+    // array
+    if (isArray(state[key])) {
+      console.log('update');
+
+    // object
+    } else if (isObject(state[key])) {
+      console.log('update');
+
+    // other
+    } else {
+      throw new Error('Cannot use `add` mutation for non Array/Object types.');
+    }
+  };
 }
 
 
@@ -111,6 +168,15 @@ export default class Store {
       //       COMMIT ONE OR MULTIPLE TIMES TO THE STORE
       rollback: true,
     };
+
+    // default mutations
+    Object.keys(params.state).forEach((key) => {
+      self.mutations[key] = setState(key);
+      self.mutations[`${key}.reset`] = resetState(key, params.state[key]);
+      self.mutations[`${key}.sync`] = syncState(key);
+      self.mutations[`${key}.add`] = addState(key);
+      self.mutations[`${key}.remove`] = removeState(key);
+    });
 
     // initialize
     self.status = status.IDLE;
@@ -290,7 +356,7 @@ export default class Store {
    * @param {string} name - Name of mutation to commit.
    * @param {object} payload - Arguments for mutation.
    */
-  commit(name, payload) {
+  commit(name, ...payload) {
     const self = this;
     const before = self.status;
 
@@ -305,7 +371,7 @@ export default class Store {
     // issue mutation and update state
     let result;
     try {
-      result = self.mutations[name](self.state, payload);
+      result = self.mutations[name](self.state, ...payload);
       self.state = Object.assign(self.state, result);
 
     // handle exception and rollback
