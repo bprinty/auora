@@ -12,7 +12,8 @@
 //
 // Might need to manage full (throughout execution) 1. active store, 2. backup store, 3. default store
 
-import { isEmpty, isObject, isFunction, isPromise, isUndefined } from './utils';
+import { PubSub } from './pubsub';
+import { isEmpty, isObject, isFunction, isPromise, isUndefined, deepEqual, clone } from './utils';
 
 
 /**
@@ -23,66 +24,61 @@ const status = {
   RESET: 'reset',
   UPDATE: 'update',
   COMMIT: 'commit',
+  MUTATE: 'mutate',
   DISPATCH: 'dispatch',
 };
 
-
-
-class StateProxy {
-  constructor(state) {
-    const self = this;
-    self.$state = state;
-    self.$backup = deepClone(state);
-    self.$stage = deepClone(state);
-    return new Proxy(this, {
-      get: (obj, key) => {
-        if (key in self.$stage) {
-          return self.$stage[key];
-        }
-        return obj[key];
-      },
-      set: (obj, key, value) => {
-        self.$stage[key] = value;
-        return true;
-      }
-    })
-  }
+/**
+ * Class for managing state stack, allowing optional callback
+ * to be issued when base state is reached.
+ */
+class StatusManager {
 
   /**
-   * Sync clone with current data in store.
+   * Constructor for object.
+   *
+   * @param {string} status - Base state for manager.
+   * @param {function} callback - Callback to issue once base state is reached.
    */
-  sync() {
-    self.$stage = Object.assign(self.$stage, deepClone(self.$state));
+  constructor(status, callback) {
+    this.idle = status;
+    this.stack = [status];
+    this.callback = callback || function(){};
   }
 
   /**
-   * Reset transaction data back into state of initial clone.
+   * Get current status.
+   */
+  get current() {
+    return this.stack[this.stack.length - 1];
+  }
+
+  /**
+   * Reset status manager back to idle.
    */
   reset() {
-    self.$stage = Object.assign(self.$stage, deepClone(self.$backup));
+    this.stack = [this.idle];
+    this.callback();
   }
 
   /**
-   * Commit changes to store. If no object is specified,
-   * this method will commit the current state of the state
-   * clone to the store and refresh the clone. If an object,
-   * is specified, that object will be committed to the state and
-   * the clone simultaneously.
-   *
-   * @param {object} values - Values to commit to state.
+   * Push new status onto stack.
    */
-  commit(values) {
-    // save input values in stage before commit
-    if (isObject(values)) {
-      self.$stage = Object.assign(self.$stage, values);
+  push(status) {
+    this.stack.push(status);
+  }
 
-    // set comittable values to current stage
-    } else {
-      values = self.$stage
+  /**
+   * Pop status off state stack and issue callback
+   * if state manager has returned to resting.
+   */
+  pop() {
+    if (this.stack.length > 1) {
+      this.stack.pop()
+      if (this.stack.length === 1) {
+        this.callback();
+      }
     }
-
-    // commit to state
-    self.$state = Object.assign(self.$state, deepClone(values));
   }
 }
 
@@ -100,6 +96,7 @@ export default class Store {
    */
   constructor(params = {}) {
     const self = this;
+    params.state = params.state || {};
 
     // set default options
     self.options = params.options || {
@@ -107,69 +104,157 @@ export default class Store {
     };
 
     // set from inputs
-    self.mutations = params.mutations || {};
+    self.mutations = {};
+    Object.keys(params.state).forEach((key) => {
+      self.mutations[key] = (state, value) => {
+        state[key] = value;
+      }
+    });
+    self.mutations = Object.assign(self.mutations, params.mutations);
 
-    // create actions proxy
-    self.actions = new Proxy(params.actions || {}, {
-      get(obj, name) {
-        if (name in obj) {
+    // create actions proxy for better api
+    self.actions = params.actions || {};
+    self.apply = new Proxy(self.actions, {
+      get(target, name) {
+        if (name in target) {
           return (...payload) => {
-            return obj[name](self, ...payload);
+            return self.dispatch(name, ...payload);
           }
         }
       }
     });
 
     // initialize
-    self.status = status.IDLE;
     self.events = new PubSub();
     self.defaults = Object.assign({}, params.state);
+    self.backup = clone(params.state);
+
+    // create manager for status updates
+    self.status = new StatusManager(status.IDLE, () => {
+      self.events.publish(status.IDLE);
+    });
+
+    // subscribe to specific state changes
+    Object.keys(params.subscribe || {}).forEach(key => {
+      self.events.subscribe(key, () => {
+        params.subscribe[key]({
+          state: self.stage,
+          commit: self.commit,
+          dispatch: self.dispatch
+        });
+        self.stage.commit();
+      });
+    });
+
+    // subscribe to events
+    Object.keys(params.events || {}).forEach(key => {
+      self.events.subscribe(key, (...payload) => {
+        params.events[key]({
+          state: self.stage,
+          commit: self.commit,
+          dispatch: self.dispatch
+        }, ...payload);
+        self.stage.commit();
+      });
+    });
 
     // create proxy for state to publish events
-    self.state = new Proxy(params.state || {}, {
-      // get: (state, key) => {
-      //   if (key === 'commit') {
-      //     return (payload) => {
-      //       state = Object.assign({})
-      //     }
-      //   }
-      // },
-      set: (state, key, value) => {
-        const before = self.status;
-
+    let state = clone(params.state);
+    self.state = new Proxy(state, {
+      get(target, key) {
+        // return function to reset state and stage to initial value
+        if (key === 'reset') {
+          return () => {
+            self.status.push(status.RESET);
+            self.stage = Object.assign(self.stage, clone(self.backup));
+            target = Object.assign(target, clone(self.backup));
+            self.events.publish(status.RESET);
+            self.status.pop();
+          };
+        }
+        return target[key];
+      },
+      set(target, key, value) {
         // protect against state changes outside of mutations (strict mode)
         if (self.options.type === 'strict') {
-          if (![status.COMMIT, status.RESET].includes(self.status)) {
-            throw new Error(`State variable ${key} should not be directly set outside of mutation.`);
+          if (![status.MUTATE, status.RESET, status.COMMIT].includes(self.status.current)) {
+            throw new Error(`State variable ${key} should not be directly set outside of mutation or action.`);
           }
         }
 
         // set value
-        self.status = status.UPDATE;
-        state[key] = value;
+        self.status.push(status.UPDATE);
+        target[key] = value;
+        self.stage[key] = value;
 
         // emit after
+        self.events.publish(key);
         self.events.publish(status.UPDATE);
-        self.status = before;
+        self.status.pop();
         return true;
       },
     });
 
     // create stage for state transactions
-    self.stage = StateProxy(self.state);
+    self.stage = new Proxy(clone(state), {
+      get(target, key) {
+        // return commit function to commit stage to current state
+        if (key === 'commit') {
+          return (values) => {
+
+            // normalize inputs
+            self.status.push(status.COMMIT);
+            if (isObject(values)) {
+              target = Object.assign(target, values);
+            } else {
+              values = target;
+            }
+
+            // commit new data only
+            const updated = [];
+            Object.keys(values).forEach((key) => {
+              if (!deepEqual(state[key], values[key])) {
+                state[key] = clone(values[key]);
+                updated.push(key);
+              }
+            });
+
+            // publish updates if necessary
+            if (updated.length !== 0) {
+              updated.map((key) => {
+                self.events.publish(key);
+              });
+              self.events.publish(status.COMMIT);
+            }
+            self.status.pop();
+          }
+        }
+        return target[key];
+      },
+      set(target, key, value) {
+        target[key] = value;
+        return true;
+      }
+    });
   }
 
   /**
-   * Proxy for subscribing to events tracked by store.
-   *
-   * @param {string} event - Event name to broadcast.
-   * @param {object} payload - Arguments to pass to event callbacks.
+   * Reset store back to base state.
    */
-  subscribe(event, callback) {
-    const self = this;
-    self.events.subscribe(event, callback);
+  reset() {
+    this.state.reset();
   }
 
+  /**
+   * Proxy for subscribing to specific state changes
+   *
+   * @param {string} name - State parameter to subscribe to.
+   * @param {object} callback - Callback to execute on state changes.
+   */
+  subscribe(name, callback) {
+    const self = this;
+    self.events.subscribe(name, callback);
+  }
 
   /**
    * Commit change to store using mutation.
@@ -179,37 +264,25 @@ export default class Store {
    */
   commit(name, ...payload) {
     const self = this;
-    const before = self.status;
 
     // assert mutation exists
     if (typeof self.mutations[name] !== 'function') {
-      throw new Error(`Mutation ${name} does not exist.`);
+      throw new Error(`Mutation \`${name}\` does not exist.`);
     }
 
     // emit before and open transaction
-    self.status = status.COMMIT;
+    self.status.push(status.MUTATE);
 
     // issue mutation and update state
-    if (this.stage === null) {
-      this.stage = self.state.clone();
-    }
     let result;
     try {
-      result = self.mutations[name](this.stage, ...payload);
-      this.stage.commit();
+      result = self.mutations[name](self.stage, ...payload);
+      self.stage.commit();
+      self.events.publish(status.MUTATE, name, ...payload);
 
-    // handle exception and rollback
-    } catch (err) {
-      throw err;
-
-    // close transaction
+    // reset to idle
     } finally {
-      self.events.publish(status.COMMIT);
-      self.status = before;
-      if (self.status === status.IDLE) {
-        self.stage = null;
-        self.events.publish(status.IDLE);
-      }
+      self.status.pop();
     }
     return result;
   }
@@ -225,44 +298,39 @@ export default class Store {
 
     // assert action exists
     if (typeof self.actions[name] !== 'function') {
-      throw new Error(`Action ${name} does not exist.`);
+      throw new Error(`Action \`${name}\` does not exist.`);
     }
 
     // change status and open transaction
-    self.status = status.ACTION;
-    const localState = self.state.clone();
+    self.status.push(status.DISPATCH);
 
     // dispatch and handle response
     let result;
     try {
-      result = self.actions[name](...payload);
-
-      // handle async results
-      if (isPromise(result)) {
-        result.catch(() => {
-          self.rollback();
-        }).finally(() => {
-          self.events.publish(status.DISPATCH);
-          self.close();
-        });
-      } else {
-        localState.commit();
+      result = self.actions[name]({
+        state: self.stage,
+        commit: self.commit,
+        dispatch: self.dispatch
+      }, ...payload);
+      if (!isPromise(result)) {
+        self.stage.commit();
+        self.events.publish(status.DISPATCH, name, ...payload);
       }
-
-    // catch sync error and rollback
-    } catch (err) {
-      self.rollback();
-      throw err;
-
-    // close transaction
     } finally {
       if (!isPromise(result)) {
-        self.events.publish(status.DISPATCH);
-        self.close();
+        self.status.pop();
       }
     }
 
-
+    // promise lifecycle
+    if (isPromise(result)) {
+      result = result.then(() => {
+        self.stage.commit();
+        self.events.publish(status.DISPATCH, name, ...payload);
+      }).finally(() => {
+        self.status.pop();
+      });
+    }
 
     return result;
   }
