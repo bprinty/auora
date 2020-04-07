@@ -58,7 +58,7 @@ test("observable.array", async () => {
   assert.deepEqual(obj, [{ id: 1, foo: 'bar' }]);
 });
 
-test("observable.array.performance", async () => {
+test.skip("observable.array.performance", async () => {
   const template = [
     { id: 1, foo: 'bar' },
     { id: 2, foo: 'baz' },
@@ -152,7 +152,7 @@ test("observable.object", async () => {
 
 });
 
-test("observable.object.performance", async () => {
+test.skip("observable.object.performance", async () => {
   const template = {
     1: { id: 1, foo: 'bar' },
     2: { id: 2, foo: 'baz' },

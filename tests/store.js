@@ -16,6 +16,12 @@ export default new Store({
     counter: 0,
     history: [0],
     operations: [],
+    noop: {},
+  },
+  mutations: {
+    subtract(state, value) {
+      state.counter -= value;
+    }
   },
   actions: {
     // sync action
@@ -34,12 +40,12 @@ export default new Store({
 
     // async action with status update
     multiply({ state }, fold) {
-      state.commit({ status: 'running' });
+      state.commit({ status: 'on' });
       return new Promise((resolve) => {
         state.counter = state.counter * fold;
         resolve(state.counter);
       }).finally(() => {
-        state.status = 'idle';
+        state.status = 'off';
       });
     },
   },
