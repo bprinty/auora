@@ -37,6 +37,12 @@ export function isObject(obj) {
  return (typeof obj === 'object') && (obj !== null) && !Array.isArray(obj);
 }
 
+/**
+ * Check if object is undefined.
+ */
+export function isUndefined(obj) {
+ return typeof obj === 'undefined';
+}
 
 /**
  * Clone object recursively.
