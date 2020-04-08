@@ -28,6 +28,7 @@ const status = {
   DISPATCH: 'dispatch',
 };
 
+
 /**
  * Class for managing state stack, allowing optional callback
  * to be issued when base state is reached.
@@ -126,7 +127,6 @@ export default class Store {
 
     // initialize
     self.events = new PubSub();
-    self.defaults = Object.assign({}, params.state);
     self.backup = clone(params.state);
 
     // create manager for status updates
