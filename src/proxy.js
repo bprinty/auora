@@ -3,7 +3,7 @@
  */
 
 import { PubSub } from './pubsub';
-import { isFunction, isObject, isArray } from './utils';
+import { isFunction, isObject, isArray, isUndefined } from './utils';
 
 
 /**
@@ -61,12 +61,11 @@ export class Observable {
 class PublishingProxy {
   constructor(callback) {
     // set up pubsub for object
-    self = this;
-    self.events = new PubSub();
+    this.events = new PubSub();
     if (isFunction(callback)) {
-      self.events.subscribe('update', callback);
-      self.events.subscribe('delete', callback);
-      self.events.subscribe('reset', callback);
+      this.events.subscribe('update', callback);
+      this.events.subscribe('delete', callback);
+      this.events.subscribe('reset', callback);
     }
   }
 
@@ -82,14 +81,24 @@ class PublishingProxy {
   subscribe(event, callback) {
     // shorthand
     if (isFunction(event)) {
-      self.events.subscribe('update', callback);
-      self.events.subscribe('delete', callback);
-      self.events.subscribe('reset', callback);
+      this.events.subscribe('update', callback);
+      this.events.subscribe('delete', callback);
+      this.events.subscribe('reset', callback);
 
     // specific event
     } else if (isFunction(callback)) {
-      self.events.subscribe(event, callback);
+      this.events.subscribe(event, callback);
     }
+  }
+
+  /**
+   * Publish global or specific event.
+   *
+   * @param {string} event - Event name to publish.
+   * @param {array} payload - Payload to pass to nested events.
+   */
+  publish(event, ...payload) {
+    this.events.publish(event, ...payload);
   }
 }
 
@@ -104,7 +113,7 @@ class PublishingProxy {
 class ObjectProxy extends PublishingProxy {
   constructor(target, callback, deep = true) {
     super(callback);
-    self = this;
+    const self = this;
 
     // create backup
     const backup = Object.assign({}, target);
@@ -135,7 +144,7 @@ class ObjectProxy extends PublishingProxy {
                 delete obj[key]
               }
             });
-            self.events.publish('reset');
+            self.publish('reset');
           }
         }
 
@@ -157,8 +166,19 @@ class ObjectProxy extends PublishingProxy {
 
             // assign data and publish
             obj = Object.assign(obj, values);
-            self.events.publish('update');
+            self.publish('update');
           }
+        }
+
+        // handle proxy subscribe
+        if (prop === 'subscribe') {
+          return (key, callback) => {
+            if (isFunction(key) && isUndefined(callback)) {
+              self.subscribe('update', key);
+            } else {
+              self.subscribe(key, callback);
+            }
+          };
         }
 
         return obj[prop];
@@ -173,16 +193,16 @@ class ObjectProxy extends PublishingProxy {
         } else {
           obj[prop] = value;
         }
-        self.events.publish(prop);
-        self.events.publish('update', prop, value);
+        self.publish(prop);
+        self.publish('update', prop, value);
         return true;
       },
 
       // delete with publish
       deleteProperty(obj, prop) {
         delete obj[prop];
-        self.events.publish(prop);
-        self.events.publish('delete', prop);
+        self.publish(prop);
+        self.publish('delete', prop);
         return true;
       }
     });
@@ -200,7 +220,7 @@ class ObjectProxy extends PublishingProxy {
 class ArrayProxy extends PublishingProxy {
   constructor(target, callback, deep = true) {
     super(callback);
-    self = this;
+    const self = this;
 
     // create semi-shallow clone for defaults
     const backup = target.map((x) => {
@@ -234,8 +254,19 @@ class ArrayProxy extends PublishingProxy {
           return () => {
             obj.splice(0, obj.length);
             obj.push(...backup);
-            self.events.publish('reset');
+            self.publish('reset');
           }
+        }
+
+        // handle proxy subscribe
+        if (prop === 'subscribe') {
+          return (key, callback) => {
+            if (isFunction(key) && isUndefined(callback)) {
+              self.subscribe('update', key);
+            } else {
+              self.subscribe(key, callback);
+            }
+          };
         }
 
         // handle function modifiers
@@ -246,8 +277,8 @@ class ArrayProxy extends PublishingProxy {
           if(ARRAY_MODIFIERS.includes(prop)) {
             return (...args) => {
               const result = obj[prop](...args);
-              self.events.publish(prop);
-              self.events.publish('update');
+              self.publish(prop);
+              self.publish('update');
               return result;
             }
           }
@@ -267,16 +298,16 @@ class ArrayProxy extends PublishingProxy {
         } else {
           obj[prop] = value;
         }
-        self.events.publish(prop);
-        self.events.publish('update', prop, value);
+        self.publish(prop);
+        self.publish('update', prop, value);
         return true;
       },
 
       // delete with publish
       deleteProperty(obj, prop) {
         obj.splice(prop, 1);
-        self.events.publish(prop);
-        self.events.publish('delete', prop);
+        self.publish(prop);
+        self.publish('delete', prop);
         return true;
       }
     });

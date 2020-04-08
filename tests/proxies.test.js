@@ -189,3 +189,43 @@ test.skip("observable.object.performance", async () => {
   assert.isTrue((createObs / createRaw) < 40); // less than 40x slower
 
 });
+
+test("observable.subscribe", async () => {
+  const track = [];
+  const obj = new Observable({
+    foo: 'bar',
+    bar: [1, 2],
+    baz: { id: 1 },
+  }, () => {
+    track.push('base');
+  });
+  obj.subscribe('foo', () => {
+    track.push('foo');
+  });
+  obj.bar.subscribe(() => {
+    track.push('bar');
+  });
+  obj.bar.subscribe(0, () => {
+    track.push('bar.0');
+  });
+  obj.baz.subscribe('id', () => {
+    track.push('baz.id');
+  });
+
+  // test property subscriptions
+  obj.foo = 'test';
+  assert.deepEqual(track, ['foo', 'base']);
+  track.splice(0, track.length);
+
+  obj.bar.push(1);
+  assert.deepEqual(track, ['base', 'bar']);
+  track.splice(0, track.length);
+
+  obj.bar[0] = 1;
+  assert.deepEqual(track, ['bar.0', 'base', 'bar']);
+  track.splice(0, track.length);
+
+  obj.baz.id = 2;
+  assert.deepEqual(track, ['baz.id', 'base']);
+  track.splice(0, track.length);
+});
