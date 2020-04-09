@@ -18,7 +18,7 @@ import { isArray, isFunction } from '../utils';
  *
  * @param {object} data - Data to normalize.
  */
-export function normalizeObject(data) {
+function normalizeObject(data) {
   if (isFunction(data)) {
     return normalizeObject(data());
   } else if (isArray(data)) {
@@ -33,6 +33,13 @@ export function normalizeObject(data) {
 }
 
 
+/**
+ * Dynamically create computed properties for Vue
+ * components using component state spec and store.
+ *
+ * @param {object, dict} spec - Specifiaction of what to bind from store.
+ * @param {object, dict} store - Store object or module.
+ */
 function createComputed(spec, store) {
   const computed = {};
   if (spec === true || spec === '*') {
@@ -49,6 +56,14 @@ function createComputed(spec, store) {
   return computed;
 }
 
+
+/**
+ * Dynamically create methods for Vue components
+ * using component mutations spec and store.
+ *
+ * @param {object, dict} spec - Specifiaction of what to bind from store.
+ * @param {object, dict} store - Store object or module.
+ */
 function createMutations(spec, store) {
   const methods = {};
   if (spec === true || spec === '*') {
@@ -62,6 +77,14 @@ function createMutations(spec, store) {
   return methods;
 }
 
+
+/**
+ * Dynamically create methods for Vue components
+ * using component actions spec and store.
+ *
+ * @param {object, dict} spec - Specifiaction of what to bind from store.
+ * @param {object, dict} store - Store object or module.
+ */
 function createActions(spec, store) {
   const methods = {};
   if (spec === true || spec === '*') {

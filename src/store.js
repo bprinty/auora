@@ -3,15 +3,7 @@
  */
 
 
-// TODO -- FIGURE OUT HOW TO MANAGE TRANSACTIONS FOR SIMULTANEOUS ASYNC ACTIONS
-// 1. Action 1 dispatch -> create backup 1
-// 2. Action 2 dispatch
-// 3. Action 1 finish -> update backup to result after action 1 finishes.
-// 4. Action 2 errors
-// 5. Rollback to beginning of action 1.
-//
-// Might need to manage full (throughout execution) 1. active store, 2. backup store, 3. default store
-
+// imports
 import { PubSub } from './pubsub';
 import { isEmpty, isObject, isFunction, isPromise, isUndefined, deepEqual, clone } from './utils';
 
