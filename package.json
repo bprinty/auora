@@ -41,8 +41,8 @@
     "docs:dev": "vuepress dev docs --no-cache",
     "docs:clean": "rm -rf docs/.vuepress/dist",
     "docs:deploy": "yarn docs:clean && yarn docs:build && cd docs/.vuepress/dist && git init && git add -A && git commit -m \"$npm_package_name, $npm_package_version\" && git push -f git@github.com:bprinty/$npm_package_name.git master:gh-pages",
-    "tag": "git tag -f $npm_package_version && git push -f origin $npm_package_version",
-    "release": "yarn tag && yarn docs:deploy && yarn publish"
+    "git:tag": "git tag -f $npm_package_version && git push -f origin $npm_package_version",
+    "release": "yarn git:tag && yarn docs:deploy && yarn publish"
   },
   "main": [
     "dist/index.min.js",
