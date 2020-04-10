@@ -14,6 +14,7 @@ import { isEmpty, isObject, isFunction, isPromise, isUndefined, deepEqual, clone
 const status = {
   IDLE: 'idle',
   RESET: 'reset',
+  ROLLBACK: 'rollback',
   UPDATE: 'update',
   COMMIT: 'commit',
   MUTATE: 'mutate',
@@ -123,7 +124,7 @@ export default class Store {
 
     // create manager for status updates
     self.status = new StatusManager(status.IDLE, () => {
-      self.events.publish(status.IDLE);
+      self.events.publish(status.IDLE, self);
     });
 
     // subscribe to specific state changes
@@ -156,11 +157,25 @@ export default class Store {
       get(target, key) {
         // return function to reset state and stage to initial value
         if (key === 'reset') {
-          return () => {
+          return (name) => {
             self.status.push(status.RESET);
-            self.stage = Object.assign(self.stage, clone(self.backup));
-            target = Object.assign(target, clone(self.backup));
-            self.events.publish(status.RESET);
+
+            // reset single param
+            if (!isUndefined(name) && name in self.backup) {
+              const old = self.stage[name];
+              self.stage[name] = clone(self.backup[name]);
+              target[name] = clone(self.backup[name]);
+              self.events.publish(name, self.stage[name], old, self);
+
+            // reset everything
+            } else {
+              self.stage = Object.assign(self.stage, clone(self.backup));
+              target = Object.assign(target, clone(self.backup));
+
+              // QUESTION: publish all specific state events?
+            }
+
+            self.events.publish(status.RESET, self);
             self.status.pop();
           };
         }
@@ -175,13 +190,14 @@ export default class Store {
         }
 
         // set value
+        const old = target[key];
         self.status.push(status.UPDATE);
         target[key] = value;
         self.stage[key] = value;
 
         // emit after
-        self.events.publish(key);
-        self.events.publish(status.UPDATE);
+        self.events.publish(key, target[key], old, self);
+        self.events.publish(status.UPDATE, key, target[key], old, self);
         self.status.pop();
         return true;
       },
@@ -190,6 +206,23 @@ export default class Store {
     // create stage for state transactions
     self.stage = new Proxy(clone(state), {
       get(target, key) {
+        if (key === 'rollback') {
+          return (name) => {
+            self.status.push(status.ROLLBACK);
+
+            // reset single param
+            if (!isUndefined(name) && name in self.backup) {
+              target[name] = clone(self.state[name]);
+
+            // reset everything
+            } else {
+              target = Object.assign(target, clone(self.state));
+            }
+
+            self.events.publish(status.ROLLBACK, self);
+            self.status.pop();
+          }
+        }
         // return commit function to commit stage to current state
         if (key === 'commit') {
           return (values) => {
@@ -214,9 +247,9 @@ export default class Store {
             // publish updates if necessary
             if (updated.length !== 0) {
               updated.map((key) => {
-                self.events.publish(key);
+                self.events.publish(key, self);
               });
-              self.events.publish(status.COMMIT);
+              self.events.publish(status.COMMIT, self);
             }
             self.status.pop();
           }
@@ -270,7 +303,7 @@ export default class Store {
     try {
       result = self.mutations[name](self.stage, ...payload);
       self.stage.commit();
-      self.events.publish(status.MUTATE, name, ...payload);
+      self.events.publish(status.MUTATE, name, ...payload, self);
 
     // reset to idle
     } finally {
@@ -306,9 +339,14 @@ export default class Store {
       }, ...payload);
       if (!isPromise(result)) {
         self.stage.commit();
-        self.events.publish(status.DISPATCH, name, ...payload);
+        self.events.publish(status.DISPATCH, name, ...payload, self);
       }
-    } finally {
+    } catch (err) {
+      if (!isPromise(result)) {
+        self.stage.rollback();
+      }
+      throw err;
+    }finally {
       if (!isPromise(result)) {
         self.status.pop();
       }
@@ -318,7 +356,10 @@ export default class Store {
     if (isPromise(result)) {
       result = result.then(() => {
         self.stage.commit();
-        self.events.publish(status.DISPATCH, name, ...payload);
+        self.events.publish(status.DISPATCH, name, ...payload, self);
+      }).catch((err) => {
+        self.stage.rollback();
+        throw err;
       }).finally(() => {
         self.status.pop();
       });
