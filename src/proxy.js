@@ -28,12 +28,16 @@ const OBJECT_MODIFIERS = [
 /**
  * Observable class for watching nested data changes and issuing
  * before/after callbacks.
- *
- * @param {object, array} target - Data to create nested proxy for.
- * @param {function} callback - Callback to execute after global
- *     update/delete events.
  */
 export class Observable {
+
+  /**
+   * Create new Observable object.
+   *
+   * @param {object} target - Data to create nested proxy for.
+   * @param {function} callback - Callback to execute after global
+   *     update/delete events.
+   */
   constructor(target, callback) {
     // normalize inputs
     target = target || {};
@@ -73,7 +77,7 @@ class PublishingProxy {
    * Subscribe to object or specific data changes.
    *
    * @param {string} event - Event name to subscribe to. Can be
-   *     `beofre`/`after` for global changes, or a specific
+   *     before/after for global changes, or a specific
    *     data key name.
    * @param {function} callback - Callback to execute when event
    *     is published.
@@ -106,7 +110,7 @@ class PublishingProxy {
 /**
  * Class for creating nested proxies from object type.
  *
- * @param {object, array} target - Data to create nested proxy for.
+ * @param {object} target - Data to create nested proxy for.
  * @param {function} callback - Callback to execute after global
  *     update/delete events.
  */
@@ -213,7 +217,7 @@ class ObjectProxy extends PublishingProxy {
 /**
  * Class for creating nested proxies from array type.
  *
- * @param {object, array} target - Data to create nested proxy for.
+ * @param {array} target - Data to create nested proxy for.
  * @param {function} callback - Callback to execute after global
  *     update/delete events.
  */

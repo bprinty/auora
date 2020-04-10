@@ -52,11 +52,11 @@ module.exports = {
               path: '/examples/',
               collapsable: false,
             },
-            // {
-            //   title: 'API',
-            //   path: '/api/',
-            //   collapsable: true,
-            // },
+            {
+              title: 'API',
+              path: '/api/',
+              collapsable: true,
+            },
           ],
         }
       }

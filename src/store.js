@@ -81,7 +81,7 @@ class StatusManager {
 /**
  * Simple store helper for managing state in an application.
  */
-export default class Store {
+export class Store {
   /**
    * Create a new store helper.
    *
@@ -367,4 +367,6 @@ export default class Store {
 
     return result;
   }
-}
+};
+
+export default Store;
