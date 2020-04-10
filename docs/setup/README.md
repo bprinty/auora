@@ -24,7 +24,30 @@ To use this package via CDN, import it in your project via:
 
 ## Configuration
 
-There are several configuration options you can change when using this module. The list below will likely grow throughout the lifecycle of this project:
+Once you've added the package to your project, you can import the `Store` object and use it like so:
+
+```javascript
+import { Store } from 'auora';
+
+const store = new Store({
+  // state
+  state: {
+    count: 0,
+  },
+
+  // actions
+  actions: {
+    increment({ state }) {
+      state.count += 1;
+      return state.count;
+    },
+  },
+});
+```
+
+See the [Guide](/guide/) section of the documentation for more information on how to fully utilize all of the features this library provides.
+
+<!-- There are several configuration options you can change when using this module. The list below will likely grow throughout the lifecycle of this project:
 
 | Option | Description | Default |
 |--------|-------------|---------|
@@ -47,4 +70,4 @@ const store = new Store({
 
 The code above also highlights all of option defaults.
 
-:::
+::: -->

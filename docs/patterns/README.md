@@ -2,156 +2,12 @@
 
 As with any middleware library, there are architectural decisions developers need to make so that they don't accrue technical debt over the lifecycle of the software they're developing. This section provides some detail and guidance around the nuances of different architectural patterns users might choose for their project. Below is an overview of what will be covered:
 
-1. [Declarative Syntax](#declarative-syntax) - An alternative to the explicit syntax outlined in previous [sections](/guide/), which may help produce more readable and maintainable code (depending on developer preferences).
-2. [Application Structure](#application-structure) - Tips for how to structure large applications with complex stores.
-3. [Modules](#modules) - How to use multiple stores in an application for different logical blocks of functionality.
+1. [Application Structure](#application-structure) - Tips for how to structure large applications with complex stores.
+2. [Modules](#modules) - How to use multiple stores in an application for different logical blocks of functionality.
 
 <!--
-4. [Syncing Actions](#syncing-actions) - Guidelines for importing existing API utilities into a store as actions.
+3. [Syncing Actions](#syncing-actions) - Guidelines for importing existing API utilities into a store as actions.
 -->
-
-
-## Declarative Syntax
-
-Along with the explicit syntax described in the [Guide](/guide/) section of the documentation, you can also define store constructs in a more declarative way. For example, here is how to define our [counter](/guide/README.md#store) example with this alternative syntax:
-
-```javascript
-// counter store property
-const counter = {
-  default: 0,
-  mutations: {
-    increment: value => value + 1,
-  },
-  actions: {
-    increment(value) {
-      return axios.post('/counter/increment').then(response => response.data.result);
-    }
-  }
-}
-
-// instantiate store with module
-store = new Store({
-  counter,
-});
-```
-
-This type of shorthand is made possible by making a few assumptions about `state` updates:
-
-1. The value *returned* from mutations is used to update the value of parent `store` param.
-2. The value *returned* from actions is used to directly update the value of a parent `store` param.
-
-
-::: tip NOTE
-
-The first argument to **actions** and **methods** declared using this stynax is always the current value of the associated state parameter.
-
-:::
-
-
-This may seem like a trivial syntactic pivot, but it becomes more useful when you're dealing with many state properties for data models across an application. It also helps for maintainability to see all mutations/actions associated with a specific state property in the same block of code. To illustrate this, let's consider an application where we need to manage data models for `authors` and `posts`:
-
-
-```javascript
-/**
-* Author model.
-*/
-const authors = {
-  default: {},
-  actions: {
-    fetch(authors) {
-      return axios.get('/authors').then(response => response.data);
-    },
-    create(authors, payload) {
-      return axios.post('/authors', payload).then(response => {
-        const author = response.data;
-        authors[author.id] = author;
-        return authors;
-      });
-    }),
-    update(authors, id, payload) {
-      return axios.put('/authors/' + id, payload).then(response => {
-        const author = response.data;
-        Object.assign(authors[author.id], author);
-        return authors;
-      });
-    }),
-  }
-}
-
-/**
- * Posts model
- */
-const posts = {
-  default: {},
-  actions: {    
-    fetch(posts) {
-      return axios.get('/posts').then(response => response.data);
-    },
-  }
-}
-
-// instantiate store with module
-const store = new Store({
-  authors,
-  posts,
-});
-```
-
-With the definitions above, we're able to perform the following operations (via actions):
-
-```javascript
-// authors
-const authors = await store.dispatch('authors.fetch');
-const newAuthor = await store.dispatch('authors.create', { name: 'Foo Bar' });
-const updatedAuthor = await store.dispatch('authors.update', newAuthor.id, { name: 'Bar Baz' });
-
-// posts
-const posts = await store.dispatch('posts/fetch');
-```
-
-
-Now, let's show an alternative store declaration for context, defining these data models with the syntax highlighted in the [Guide](/guide/) section of the documentation:
-
-```javascript
-const store = {
-  authors: {},
-  posts: {},
-};
-
-const actions = {
-  'authors.fetch': ({ commit }) => {
-    return axios.get('/authors').then(response => {
-      commit('authors', response.data);
-      return response.data
-    });
-  },
-  'authors.create': ({ commit }, payload) => {
-    return axios.post('/authors', payload).then(response => {
-      commit('authors.add', response.data);
-      return response.data
-    });
-  },
-  'authors.update': ({ commit }, id, payload) => {
-    return axios.put('/authors/' + id, payload).then(response => {
-      commit('authors.sync', response.data);
-      return response.data
-    });
-  },
-  'posts.fetch': ({ commit }) => {
-    return axios.get('/posts').then(response => {
-      commit('posts', response.data);
-      return response.data
-    });
-  },
-};
-
-const store = new Store({
-  store,
-  actions
-});
-```
-
-Comparing these two side-by-side, you can see how it might be beneficial for clarity to define data models in an isolated way. However, syntactic preference is obviously subjective and will vary based on differences in background and individual coding style. Users are encouraged to use any style that might best fit their application.
 
 
 ## Application Structure
@@ -246,21 +102,15 @@ We've alluded to using modules in previous sections of the documentation, but no
 
 As an example, in a **Todo List** application, we might want to have separate stores for 1) managing a user's profile information, and 2) managing a user's todo list. Data management across each of those stores operates independently, so we don't technically need to make them connected in any way by putting them in the same store. Here is what defining multiple stores for that use case might look like:
 
-::: danger Incomplete
-
-The code example immediately below is incomplete.
-
-:::
-
 ```javascript
 const profile = new Store({
   state: {
     name: '<anonymous>',
   },
   actions: {
-    login: (store, { email, password }) => {
+    login({ state }, { email, password }) {
       return axios.post('/login').then(response => {
-        store.commit('name', response.data.name);
+        state.name = response.data.name;
       });
     },
   },
@@ -271,18 +121,26 @@ const todos = new Store({
     todos: []
   }
   actions: {
-    fetch: (store) => store
-    add:
-    complete:
+    fetch({ state }) {
+      return axios.get('/todos').then(response => {
+        state.todos = response.data;
+      });
+    },
+    create({ state }, payload) {
+      return axios.post('/todos', { payload }).then(response => {
+        state.todos.push(response.data);
+      });
+    }
   }
-})
+});
 
 
 // use an action from the `profile` store.
-await profile.dispatch('login', { email: '', password: '' });
+await profile.apply.login({ email: '', password: '' });
 
 // use an action from the `todos` store.
-await todos.dispatch('fetch');
+await todos.apply.fetch();
+await todos.apply.create({ text: 'Foo bar', complete: false });
 ```
 
 Breaking out isolated functionality into separate modules can help with code maintenance and readability. It also helps teams [isolate](https://en.wikipedia.org/wiki/Separation_of_concerns) the effects of changes as they're made to your project.
@@ -335,6 +193,7 @@ export default {
 ```
 
 For more example on how to use store modules in other frontend frameworks like **React** or **Svelte**, see the [Examples](/examples/) section of the documentation.
+
 
 <!--
 
