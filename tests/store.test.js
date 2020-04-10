@@ -2,6 +2,10 @@
  * Testing for package.
  */
 
+// TODO: TESTING FOR
+// 1. STAGE RESET AFTER ACTION ERROR
+// 1. STORE RESET SPECIFIC STATE PROPERTY
+
 
 // imports
 // -------
