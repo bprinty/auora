@@ -25,6 +25,7 @@
     "node_modules",
     "tests",
     "src",
+    "docs/.vuepress/dist",
     "coverage",
     "package-lock.json"
   ],
