@@ -65,7 +65,7 @@ With our store defined, we can bind it to the main **Vue** application instance 
 
 ```javascript
 // contents of index.js
-import Auora from 'auora/plugins/vue';
+import Auora from 'auora/ext/vue';
 
 import counterStore from '@/store';
 
@@ -217,7 +217,7 @@ To bind these separate stores to the same **Vue** application instance, you can 
 
 ```javascript
 // contents of index.js
-import Auora from 'auora/plugins/vue';
+import Auora from 'auora/ext/vue';
 
 import profile from '@/modules/profile/store';
 import feed from '@/modules/feed/store';

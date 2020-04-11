@@ -168,7 +168,7 @@ First, to bind our store from the previous section in a **Vue** application, we 
 
 ```javascript
 // contents of index.js
-import Auora from 'auora/plugins/vue';
+import Auora from 'auora/ext/vue';
 
 import counterStore from '@/store';
 

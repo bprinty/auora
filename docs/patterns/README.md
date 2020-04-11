@@ -78,7 +78,7 @@ And then Inside the root `src/index.js`, you can import the other stores as stor
 
 ```javascript
 // contents of index.js
-import Auora from 'auora/plugins/vue';
+import Auora from 'auora/ext/vue';
 
 import profile from '@/src/modules/profile/store';
 import feed from '@/src/modules/feed/store';
@@ -149,7 +149,7 @@ In a Vue project, declaring and binding multiple stores to the root **Vue** inst
 
 ```javascript
 // contents of src/index.js
-import Auora from 'auora';
+import Auora from 'auora/ext/vue';
 import { Store } from 'auora';
 
 const moduleA = new Store({ ... });
