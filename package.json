@@ -38,6 +38,7 @@
     "test:watch": "jest --config .jest.json --watch",
     "test:debug": "node --inspect node_modules/.bin/jest --runInBand --watch",
     "docs": "yarn docs:dev",
+    "docs:now": "NOW_SH=true vuepress build docs --no-cache",
     "docs:build": "vuepress build docs --no-cache",
     "docs:dev": "vuepress dev docs --no-cache",
     "docs:clean": "rm -rf docs/.vuepress/dist",
