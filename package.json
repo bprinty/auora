@@ -2,12 +2,12 @@
   "name": "auora",
   "homepage": "https://bprinty.github.io/auora",
   "repository": "https://github.com/bprinty/auora",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "authors": [
     "Blake Printy <bprinty@gmail.com> (http://bprinty.github.io)"
   ],
   "description": "Another state manager.",
-  "license": "Apache-2.0",
+  "license": "MIT",
   "keywords": [
     "state",
     "immutable",
