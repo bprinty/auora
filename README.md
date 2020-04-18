@@ -74,7 +74,7 @@ To use this package via CDN, import it in your project via:
 Documentation for the project can be found [here](http://bprinty.github.io/auora).
 
 
-## Overview
+## Quickstart
 
 To provide a quick and simple high-level picture of how this library can fit into a project, let's define a minimal **Store** and use that **Store** in a simple **Vue** application. We're going to define the `Hello World` of state management: a *counter* application.
 
