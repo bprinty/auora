@@ -1,5 +1,12 @@
+// set gh-pages or now.sh
+let baseURL = '/auora/';
+if (process.env.NOW_SH) {
+  baseURL = '';
+}
+
+// config
 module.exports = {
-  base: '/auora/',
+  base: baseURL,
   locales: {
     '/': {
       lang: 'en-US',
