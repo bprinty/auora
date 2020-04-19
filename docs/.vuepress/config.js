@@ -7,6 +7,9 @@ if (process.env.NOW_SH) {
 // config
 module.exports = {
   base: baseURL,
+  head: [
+    ['link', { rel: 'icon', href: '/icons/favicon.ico' }],
+  ],
   locales: {
     '/': {
       lang: 'en-US',
