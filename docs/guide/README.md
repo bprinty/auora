@@ -10,6 +10,7 @@ The core concepts that need to be understood when using this module (as with mos
 * [Store](#store) - The central manager for accessing state and **dispatching** actions.
 * [State](#state) - The global source of truth for data models in the application.
 * [Actions](#actions) - Synchronous or asynchronous processes that can change state.
+* [Getters](#getters) - Functions for computing derived state (with caching between state changes).
 * [Events](#events) - Callbacks that execute after specific *events* that happen throughout the state management lifecycle.
 
 
@@ -371,6 +372,118 @@ await promise
 store.state.loading // false
 store.state.count // 0
 ```
+
+
+## Getters
+
+As mentioned before, `getters` are ways of computing derived state when state changes are made. For property-style getters, results are **cached** between state updates to make getter execution highly performant.
+
+
+### Defining Getters
+
+To define a getter for your store, create a plain object with *getter functions* and bind it to your **Store**:
+
+```javascript
+const store = new Store({
+  state: { count: 1 },
+  getters: {
+    negCount(state) {
+      return state.count * -1;
+    },
+  },
+});
+
+// using getter
+store.get.netCount // -1
+```
+
+Getter functions accept `state` as their **only** argument and should return some type of derived state.
+
+::: tip NOTE
+
+Getters **must not change state in any way**. Getters are meant to summarize data, not change it.
+
+:::
+
+### Getters with Arguments
+
+For applications that require more complex getters, you can return a function for computing derived state. For instance, if we wanted to define a getter to return the current count plus some extra value, we could use:
+
+```javascript
+const store = new Store({
+  state: { count: 0 },
+  getters: {
+    countPlus: state => number => {
+      return state.count + number;
+    },
+  },
+});
+```
+
+Which would then allow us to utilize the getter in a functional way like so:
+
+```javascript
+store.get.countPlus(5) // 5
+```
+
+::: tip NOTE
+
+Getter results will **not be cached** if getter functions return a nested function.
+
+:::
+
+
+### Using Getters
+
+Expanding more upon how to use getters, let's say we have the following store (where we've defined two types of getters):
+
+```javascript
+const store = new Auora({
+  state: {
+    items: [
+      { id: 1, foo: true },
+      { id: 2, foo: false },
+    ]
+  },
+  getters: {
+    foos(state) {
+      return state.items.filter(item => item.foo);
+    },
+    byId: state => id => {
+      return state.items.find(item => item.id === id);
+    }
+  }
+})
+```
+
+We can use each type of getter like so:
+
+```javascript
+// property-style getter
+store.get.foos // [{id: 1, foo: true}]
+
+// function-style getter
+store.get.byId(2) // {id: 2, foo: false}
+```
+
+In an application, you can use getters just like any other variable. Here is an example of how to use getters in a [Vue](/examples/) component:
+
+```html
+<template>
+  <p>{{ foos.length }}</p>
+</template>
+
+<script>
+export default {
+  name: 'Foo Number',
+  store: {
+    getters: ['foos'],
+  }
+}
+</script>
+```
+
+For examples of how to use getters in other front-end frameworks, see the [Examples](/examples/) section of the documentation.
 
 
 ## Events
