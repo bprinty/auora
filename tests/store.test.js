@@ -105,3 +105,27 @@ test("state.updates", async () => {
   assert.notEqual(history, store.state.history);
   assert.notEqual(operations, store.state.operations);
 });
+
+test("getters.simple", async () => {
+  assert.equal(store.state.counter, 0);
+  assert.equal(store.state.status, 'off');
+  assert.equal(store.status.current, 'idle');
+
+  // apply action
+  store.apply.increment();
+  assert.equal(store.state.counter, 1);
+  assert.equal(store.status.current, 'idle');
+
+  // getter
+  assert.equal(store.get.first, 0);
+  assert.equal(store.status.current, 'idle');
+
+  // check caching
+  store.cache.first = 5;
+  assert.equal(store.get.first, 5);
+  store.apply.increment();
+  assert.equal(store.get.first, 0);
+
+  // check with arguments
+  assert.equal(store.get.record(1), 0);
+});

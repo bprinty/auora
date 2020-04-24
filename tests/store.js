@@ -18,6 +18,14 @@ export default new Store({
     operations: [],
     noop: {},
   },
+  getters: {
+    first(state) {
+      return state.history[0];
+    },
+    record(state) {
+      return index => state.history[index - 1];
+    },
+  },
   mutations: {
     subtract(state, value) {
       state.counter -= value;

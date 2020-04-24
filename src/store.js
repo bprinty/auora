@@ -118,6 +118,26 @@ export class Store {
       }
     });
 
+    // getters proxy
+    self.cache = {};
+    params.getters = params.getters || {};
+    self.get = new Proxy(params.getters, {
+      get(target, name) {
+        if (!(name in target)) {
+          throw new Error(`No getter defined with name \`${name}\``);
+        }
+        if (name in self.cache) {
+          return self.cache[name];
+        } else {
+          let result = target[name](self.state);
+          if (!isFunction(result)) {
+            self.cache[name] = result;
+          }
+          return result;
+        }
+      }
+    });
+
     // initialize
     self.events = new PubSub();
     self.backup = clone(params.state);
@@ -175,6 +195,7 @@ export class Store {
               // QUESTION: publish all specific state events?
             }
 
+            self.cache = {};
             self.events.publish(status.RESET, self);
             self.status.pop();
           };
@@ -196,6 +217,7 @@ export class Store {
         self.stage[key] = value;
 
         // emit after
+        self.cache = {};
         self.events.publish(key, target[key], old, self);
         self.events.publish(status.UPDATE, key, target[key], old, self);
         self.status.pop();
@@ -246,6 +268,7 @@ export class Store {
 
             // publish updates if necessary
             if (updated.length !== 0) {
+              self.cache = {};
               updated.map((key) => {
                 self.events.publish(key, self);
               });
@@ -335,7 +358,10 @@ export class Store {
       result = self.actions[name]({
         state: self.stage,
         commit: self.commit,
-        dispatch: self.dispatch
+        dispatch: self.dispatch,
+        getters: self.getters,
+        get: self.get,
+        apply: self.apply,
       }, ...payload);
       if (!isPromise(result)) {
         self.stage.commit();
