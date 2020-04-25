@@ -28,7 +28,7 @@
     "package-lock.json"
   ],
   "scripts": {
-    "clean": "rm -rf node_modules dist coverage",
+    "clean": "rm -rf node_modules coverage",
     "build": "rollup -c",
     "build:watch": "rollup -c --watch",
     "lint": "eslint src --fix",
