@@ -2,7 +2,7 @@
   "name": "auora",
   "homepage": "https://bprinty.github.io/auora",
   "repository": "https://github.com/bprinty/auora",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "authors": [
     "Blake Printy <bprinty@gmail.com> (http://bprinty.github.io)"
   ],
@@ -23,8 +23,6 @@
   "ignore": [
     "**/.*",
     "node_modules",
-    "tests",
-    "src",
     "docs/.vuepress/dist",
     "coverage",
     "package-lock.json"
