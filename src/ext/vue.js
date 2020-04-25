@@ -40,7 +40,7 @@ function normalizeObject(data) {
  * @param {object, dict} spec - Specifiaction of what to bind from store.
  * @param {object, dict} store - Store object or module.
  */
-function createComputed(spec, store) {
+function createParams(spec, store) {
   const computed = {};
   if (spec === true || spec === '*') {
     spec = Object.keys(store.state);
@@ -51,6 +51,29 @@ function createComputed(spec, store) {
       cache: false,
       get: () => store.state[mapping[key]],
       set: (value) => store.commit(mapping[key], value),
+    };
+  });
+  return computed;
+}
+
+
+/**
+ * Dynamically create computed properties for Vue
+ * components using component getter spec and store.
+ *
+ * @param {object, dict} spec - Specifiaction of what to bind from store.
+ * @param {object, dict} store - Store object or module.
+ */
+function createGetters(spec, store) {
+  const computed = {};
+  if (spec === true || spec === '*') {
+    spec = Object.keys(store.get);
+  }
+  const mapping = normalizeObject(spec);
+  Object.keys(mapping).forEach((key) => {
+    computed[key] = {
+      cache: false,
+      get: () => store.get[mapping[key]],
     };
   });
   return computed;
@@ -118,13 +141,30 @@ const Mixin = {
     if ('state' in options) {
       // global
       if ('state' in self.$store) {
-        computed = Object.assign(computed, createComputed(options.state, self.$store));
+        computed = Object.assign(computed, createParams(options.state, self.$store));
 
       // modular
       } else {
         Object.keys(self.$store).forEach((key) => {
           if (key in options.state) {
-            computed = Object.assign(computed, createComputed(options.state[key], self.$store[key]));
+            computed = Object.assign(computed, createParams(options.state[key], self.$store[key]));
+          }
+        });
+      }
+    }
+
+    // add declared getters to computed properties
+    if ('getters' in options) {
+
+      // global
+      if ('get' in self.$store) {
+        computed = Object.assign(computed, createGetters(options.getters, self.$store));
+
+      // modular
+      } else {
+        Object.keys(self.$store).forEach((key) => {
+          if (key in options.getters) {
+            computed = Object.assign(computed, createGetters(options.getters[key], self.$store[key]));
           }
         });
       }

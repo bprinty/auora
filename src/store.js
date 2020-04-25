@@ -137,6 +137,7 @@ export class Store {
         }
       }
     });
+    self.getters = self.get; // parity with other libraries
 
     // initialize
     self.events = new PubSub();

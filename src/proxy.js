@@ -317,3 +317,6 @@ class ArrayProxy extends PublishingProxy {
     });
   }
 }
+
+// exports
+export default Observable;

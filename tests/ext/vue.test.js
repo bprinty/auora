@@ -27,6 +27,9 @@ describe('vue.global', () => {
     state: {
       count: 'counter',
     },
+    getters: {
+      initial: 'first',
+    },
     actions: {
       localIncrement: 'increment',
     },
@@ -35,6 +38,7 @@ describe('vue.global', () => {
   const History = {
     template: '<div><p v-for="item in history" :key="item">{{ item }}</p></div>',
     state: ['history'],
+    getters: ['first'],
     actions: ['increment', 'add'],
   };
 
@@ -43,6 +47,7 @@ describe('vue.global', () => {
     state: '*',
     actions: true,
     mutations: true,
+    getters: true,
     methods: {
       localIncrement: store.apply.increment,
     }
@@ -59,6 +64,7 @@ describe('vue.global', () => {
       store,
     });
     assert.equal(counter.vm.count, 0);
+    assert.equal(counter.vm.initial, 0);
     assert.isFunction(counter.vm.localIncrement);
 
     // standard
@@ -66,6 +72,7 @@ describe('vue.global', () => {
       localVue,
       store,
     });
+    assert.equal(history.vm.first, 0);
     assert.deepEqual(history.vm.history, [0]);
     assert.isFunction(history.vm.increment);
     assert.isFunction(history.vm.add);
@@ -75,6 +82,7 @@ describe('vue.global', () => {
       localVue,
       store,
     });
+    assert.equal(noop.vm.first, 0);
     assert.deepEqual(noop.vm.counter, 0);
     assert.deepEqual(noop.vm.history, [0]);
     assert.isFunction(noop.vm.increment);
@@ -127,6 +135,11 @@ describe('vue.module', () => {
         count: 'counter',
       }
     },
+    getters: {
+      common: {
+        initial: 'first',
+      },
+    },
     actions: {
       common: {
         localIncrement: 'increment',
@@ -137,7 +150,10 @@ describe('vue.module', () => {
   const History = {
     template: '<div><p v-for="item in history" :key="item">{{ item }}</p></div>',
     state: {
-      common: ['history']
+      common: ['history'],
+    },
+    getters: {
+      common: ['first'],
     },
     actions: {
       common: ['increment', 'add'],
@@ -150,6 +166,9 @@ describe('vue.module', () => {
       common: '*',
     },
     actions: {
+      common: true
+    },
+    getters: {
       common: true
     },
     mutations: {
@@ -171,6 +190,7 @@ describe('vue.module', () => {
       store: { common: store },
     });
     assert.equal(counter.vm.count, 0);
+    assert.equal(counter.vm.initial, 0);
     assert.isFunction(counter.vm.localIncrement);
 
     // standard
@@ -178,6 +198,7 @@ describe('vue.module', () => {
       localVue,
       store: { common: store },
     });
+    assert.equal(history.vm.first, 0);
     assert.deepEqual(history.vm.history, [0]);
     assert.isFunction(history.vm.increment);
     assert.isFunction(history.vm.add);
@@ -187,7 +208,8 @@ describe('vue.module', () => {
       localVue,
       store: { common: store },
     });
-    assert.deepEqual(noop.vm.counter, 0);
+    assert.equal(noop.vm.counter, 0);
+    assert.equal(noop.vm.first, 0);
     assert.deepEqual(noop.vm.history, [0]);
     assert.isFunction(noop.vm.increment);
     assert.isFunction(noop.vm.add);
