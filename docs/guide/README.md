@@ -373,6 +373,28 @@ store.state.loading // false
 store.state.count // 0
 ```
 
+<!--
+
+### Chaining Actions
+
+Another useful technique is
+
+```javascript
+const store = new Store({
+  state: { ... },
+  actions: {
+    actionA({ apply }) {
+      return apply.actionB();
+    },
+    actionB({ state }) {
+      // code for actionB
+    },
+  }
+})
+```
+
+-->
+
 
 ## Getters
 

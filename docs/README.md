@@ -13,7 +13,7 @@ footer: MIT Licensed | Copyright © 2020-present Blake Printy
   </div>
   <div class="feature">
     <h2>Lightweight <i class="fas fa-feather"></i></h2>
-    <p>High performance with only 2.5kb of minified code.</p>
+    <p>High performance with <2kb of minified & gzipped code.</p>
   </div>
   <div class="feature">
     <h2>Simple <i class="fas fa-glass-martini-alt"></i></h2>
