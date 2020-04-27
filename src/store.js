@@ -373,7 +373,7 @@ export class Store {
         self.stage.rollback();
       }
       throw err;
-    }finally {
+    } finally { 
       if (!isPromise(result)) {
         self.status.pop();
       }
