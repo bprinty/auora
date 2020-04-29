@@ -106,6 +106,15 @@ test("state.updates", async () => {
   assert.notEqual(operations, store.state.operations);
 });
 
+// test("state.deletes", async () => {
+//   // make sure state prop exists
+//   assert.isTrue(typeof store.state.noop !== 'undefined');
+//
+//   // shake it off and make sure it's gone
+//   store.apply.shake();
+//   assert.isTrue(typeof store.state.noop === 'undefined');
+// });
+
 test("getters.simple", async () => {
   assert.equal(store.state.counter, 0);
   assert.equal(store.state.status, 'off');

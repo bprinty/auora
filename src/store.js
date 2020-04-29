@@ -4,8 +4,11 @@
 
 
 // imports
-import { PubSub } from './pubsub';
-import { isEmpty, isObject, isFunction, isPromise, isUndefined, deepEqual, clone } from './utils';
+import PubSub from './pubsub';
+import {
+  isObject, isFunction, isPromise, isUndefined,
+  deepEqual, clone,
+} from './utils';
 
 
 /**
@@ -37,7 +40,7 @@ class StatusManager {
   constructor(status, callback) {
     this.idle = status;
     this.stack = [status];
-    this.callback = callback || function(){};
+    this.callback = callback || function () {};
   }
 
   /**
@@ -68,14 +71,13 @@ class StatusManager {
    */
   pop() {
     if (this.stack.length > 1) {
-      this.stack.pop()
+      this.stack.pop();
       if (this.stack.length === 1) {
         this.callback();
       }
     }
   }
 }
-
 
 
 /**
@@ -102,7 +104,7 @@ export class Store {
     Object.keys(params.state).forEach((key) => {
       self.mutations[key] = (state, value) => {
         state[key] = value;
-      }
+      };
     });
     self.mutations = Object.assign(self.mutations, params.mutations);
 
@@ -111,11 +113,10 @@ export class Store {
     self.apply = new Proxy(self.actions, {
       get(target, name) {
         if (name in target) {
-          return (...payload) => {
-            return self.dispatch(name, ...payload);
-          }
+          return (...payload) => self.dispatch(name, ...payload);
         }
-      }
+        return undefined;
+      },
     });
 
     // getters proxy
@@ -129,13 +130,13 @@ export class Store {
         if (name in self.cache) {
           return self.cache[name];
         } else {
-          let result = target[name](self.state);
+          const result = target[name](self.state);
           if (!isFunction(result)) {
             self.cache[name] = result;
           }
           return result;
         }
-      }
+      },
     });
     self.getters = self.get; // parity with other libraries
 
@@ -149,31 +150,31 @@ export class Store {
     });
 
     // subscribe to specific state changes
-    Object.keys(params.subscribe || {}).forEach(key => {
+    Object.keys(params.subscribe || {}).forEach((key) => {
       self.events.subscribe(key, () => {
         params.subscribe[key]({
           state: self.stage,
           commit: self.commit,
-          dispatch: self.dispatch
+          dispatch: self.dispatch,
         });
         self.stage.commit();
       });
     });
 
     // subscribe to events
-    Object.keys(params.events || {}).forEach(key => {
+    Object.keys(params.events || {}).forEach((key) => {
       self.events.subscribe(key, (...payload) => {
         params.events[key]({
           state: self.stage,
           commit: self.commit,
-          dispatch: self.dispatch
+          dispatch: self.dispatch,
         }, ...payload);
         self.stage.commit();
       });
     });
 
     // create proxy for state to publish events
-    let state = clone(params.state);
+    const state = clone(params.state);
     self.state = new Proxy(state, {
       get(target, key) {
         // return function to reset state and stage to initial value
@@ -244,7 +245,7 @@ export class Store {
 
             self.events.publish(status.ROLLBACK, self);
             self.status.pop();
-          }
+          };
         }
         // return commit function to commit stage to current state
         if (key === 'commit') {
@@ -258,6 +259,9 @@ export class Store {
               values = target;
             }
 
+            // cascade deletes
+            // TODO
+
             // commit new data only
             const updated = [];
             Object.keys(values).forEach((key) => {
@@ -270,20 +274,21 @@ export class Store {
             // publish updates if necessary
             if (updated.length !== 0) {
               self.cache = {};
-              updated.map((key) => {
-                self.events.publish(key, self);
-              });
+              updated.forEach(key => self.events.publish(key, self));
               self.events.publish(status.COMMIT, self);
             }
             self.status.pop();
-          }
+          };
         }
         return target[key];
       },
       set(target, key, value) {
         target[key] = value;
         return true;
-      }
+      },
+      // deleteProperty(target, key) {
+      //   throw new Error('Not Implemented!');
+      // }
     });
   }
 
@@ -373,7 +378,7 @@ export class Store {
         self.stage.rollback();
       }
       throw err;
-    } finally { 
+    } finally {
       if (!isPromise(result)) {
         self.status.pop();
       }
@@ -394,6 +399,6 @@ export class Store {
 
     return result;
   }
-};
+}
 
 export default Store;

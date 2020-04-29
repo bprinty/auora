@@ -29,7 +29,7 @@ export default new Store({
   mutations: {
     subtract(state, value) {
       state.counter -= value;
-    }
+    },
   },
   actions: {
     // sync action
@@ -41,7 +41,7 @@ export default new Store({
     // async action
     add({ state }, number) {
       return new Promise((resolve) => {
-        state.counter = state.counter + number;
+        state.counter += number;
         resolve(state.counter);
       });
     },
@@ -50,11 +50,16 @@ export default new Store({
     multiply({ state }, fold) {
       state.commit({ status: 'on' });
       return new Promise((resolve) => {
-        state.counter = state.counter * fold;
+        state.counter *= fold;
         resolve(state.counter);
       }).finally(() => {
         state.status = 'off';
       });
+    },
+
+    // delete unecessary items from store (testing delete)
+    shake({ state }) {
+      delete state.noop;
     },
   },
   subscribe: {
@@ -65,8 +70,8 @@ export default new Store({
   events: {
     // update
     // commit
-    dispatch({ state }, name, ...inputs) {
+    dispatch({ state }, name) {
       state.operations.push(name);
-    }
-  }
+    },
+  },
 });

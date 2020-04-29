@@ -2,8 +2,11 @@
  * Placholder for proxy logic
  */
 
-import { PubSub } from './pubsub';
-import { isFunction, isObject, isArray, isUndefined } from './utils';
+import PubSub from './pubsub';
+import {
+  isFunction, isObject,
+  isArray, isUndefined,
+} from './utils';
 
 
 /**
@@ -20,44 +23,10 @@ const ARRAY_MODIFIERS = [
 /**
  * List of object modifiers to dispatch callbacks on.
  */
-const OBJECT_MODIFIERS = [
+const OBJECT_MODIFIERS = [ // eslint-disable-line no-unused-vars
   'update',
 ];
 
-
-/**
- * Observable class for watching nested data changes and issuing
- * before/after callbacks.
- */
-export class Observable {
-
-  /**
-   * Create new Observable object.
-   *
-   * @param {object} target - Data to create nested proxy for.
-   * @param {function} callback - Callback to execute after global
-   *     update/delete events.
-   */
-  constructor(target, callback) {
-    // normalize inputs
-    target = target || {};
-
-    // array
-    if (isArray(target)) {
-      return new ArrayProxy(target, callback);
-    }
-
-    // object
-    else if (isObject(target)) {
-      return new ObjectProxy(target, callback);
-    }
-
-    // other
-    else {
-      throw new Error('Cannot create Observable type for non Array or Object type.');
-    }
-  }
-}
 
 /**
  * Abstract class for managing proxies with subscriptions.
@@ -124,10 +93,11 @@ class ObjectProxy extends PublishingProxy {
 
     // proxify nested objects
     if (deep) {
-      Object.keys(target).forEach(key => {
+      Object.keys(target).forEach((key) => {
         if (isObject(target[key])) {
           target[key] = new ObjectProxy(target[key], callback);
         } else if (isArray(target[key])) {
+          // eslint-disable-next-line no-use-before-define
           target[key] = new ArrayProxy(target[key], callback);
         }
       });
@@ -141,15 +111,15 @@ class ObjectProxy extends PublishingProxy {
         // handle proxy reset
         if (prop === 'reset') {
           return () => {
-            Object.keys(obj).forEach(key => {
+            Object.keys(obj).forEach((key) => {
               if (key in backup) {
                 obj[key] = backup[key];
               } else {
-                delete obj[key]
+                delete obj[key];
               }
             });
             self.publish('reset');
-          }
+          };
         }
 
         // handle proxy update (performance improvement vs Object.assign)
@@ -159,10 +129,11 @@ class ObjectProxy extends PublishingProxy {
           return (values) => {
             // proxify nested objects
             if (deep) {
-              Object.keys(values).forEach(key => {
+              Object.keys(values).forEach((key) => {
                 if (isObject(values[key])) {
                   values[key] = new ObjectProxy(values[key], callback);
                 } else if (isArray(target[key])) {
+                  // eslint-disable-next-line no-use-before-define
                   values[key] = new ArrayProxy(values[key], callback);
                 }
               });
@@ -171,7 +142,7 @@ class ObjectProxy extends PublishingProxy {
             // assign data and publish
             obj = Object.assign(obj, values);
             self.publish('update');
-          }
+          };
         }
 
         // handle proxy subscribe
@@ -193,6 +164,7 @@ class ObjectProxy extends PublishingProxy {
         if (isObject(value) && deep) {
           obj[prop] = new ObjectProxy(value, callback);
         } else if (isArray(value) && deep) {
+          // eslint-disable-next-line no-use-before-define
           obj[prop] = new ArrayProxy(value, callback);
         } else {
           obj[prop] = value;
@@ -208,7 +180,7 @@ class ObjectProxy extends PublishingProxy {
         self.publish(prop);
         self.publish('delete', prop);
         return true;
-      }
+      },
     });
   }
 }
@@ -259,7 +231,7 @@ class ArrayProxy extends PublishingProxy {
             obj.splice(0, obj.length);
             obj.push(...backup);
             self.publish('reset');
-          }
+          };
         }
 
         // handle proxy subscribe
@@ -278,13 +250,13 @@ class ArrayProxy extends PublishingProxy {
         if (typeof value === 'function') {
 
           // modifiers
-          if(ARRAY_MODIFIERS.includes(prop)) {
+          if (ARRAY_MODIFIERS.includes(prop)) {
             return (...args) => {
               const result = obj[prop](...args);
               self.publish(prop);
               self.publish('update');
               return result;
-            }
+            };
           }
 
           // non-modifiers
@@ -313,8 +285,41 @@ class ArrayProxy extends PublishingProxy {
         self.publish(prop);
         self.publish('delete', prop);
         return true;
-      }
+      },
     });
+  }
+}
+
+
+/**
+ * Observable class for watching nested data changes and issuing
+ * before/after callbacks.
+ */
+export class Observable {
+
+  /**
+   * Create new Observable object.
+   *
+   * @param {object} target - Data to create nested proxy for.
+   * @param {function} callback - Callback to execute after global
+   *     update/delete events.
+   */
+  constructor(target, callback) {
+    // normalize inputs
+    target = target || {};
+
+    // array
+    if (isArray(target)) {
+      return new ArrayProxy(target, callback);
+
+    // object
+    } else if (isObject(target)) {
+      return new ObjectProxy(target, callback);
+
+    // other
+    } else {
+      throw new Error('Cannot create Observable type for non Array or Object type.');
+    }
   }
 }
 

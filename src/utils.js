@@ -20,7 +20,7 @@ export function isPromise(obj) {
  * Check if object is function.
  */
 export function isFunction(obj) {
-  return typeof obj === "function";
+  return typeof obj === 'function';
 }
 
 /**
@@ -34,31 +34,31 @@ export function isArray(obj) {
  * Check if object is plain object type.
  */
 export function isObject(obj) {
- return (typeof obj === 'object') && (obj !== null) && !Array.isArray(obj);
+  return (typeof obj === 'object') && (obj !== null) && !Array.isArray(obj);
 }
 
 /**
  * Check if object is undefined.
  */
 export function isUndefined(obj) {
- return typeof obj === 'undefined';
+  return typeof obj === 'undefined';
 }
 
 /**
  * Clone object recursively.
  */
 export function clone(obj) {
-    if (isArray(obj)) {
-      return obj.map(item => clone(item));
-    } else if (isObject(obj)) {
-      const result = {};
-      Object.keys(obj).forEach(key => {
-        result[key] = clone(obj[key]);
-      })
-      return result;
-    } else {
-      return obj;
-    }
+  if (isArray(obj)) {
+    return obj.map(item => clone(item));
+  } else if (isObject(obj)) {
+    const result = {};
+    Object.keys(obj).forEach((key) => {
+      result[key] = clone(obj[key]);
+    });
+    return result;
+  } else {
+    return obj;
+  }
 }
 
 
@@ -73,10 +73,10 @@ export function deepEqual(target, other) {
 
   // compare arrays
   if (isArray(target)) {
-    if (target.length != other.length) {
+    if (target.length !== other.length) {
       return false;
     }
-    for(let i=0; i<target.length; i += 1) {
+    for (let i = 0; i < target.length; i += 1) {
       if (!deepEqual(target[i], other[i])) {
         return false;
       }
@@ -89,7 +89,7 @@ export function deepEqual(target, other) {
     if (!deepEqual(keys, Object.keys(other).sort())) {
       return false;
     }
-    for(let i=0; i<keys.length; i += 1) {
+    for (let i = 0; i < keys.length; i += 1) {
       const key = keys[i];
       if (!deepEqual(target[key], other[key])) {
         return false;

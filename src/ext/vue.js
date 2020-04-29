@@ -50,7 +50,7 @@ function createParams(spec, store) {
     computed[key] = {
       cache: false,
       get: () => store.state[mapping[key]],
-      set: (value) => store.commit(mapping[key], value),
+      set: value => store.commit(mapping[key], value),
     };
   });
   return computed;
@@ -134,7 +134,7 @@ const Mixin = {
     if (options.store) {
       self.$store = isFunction(options.store) ? options.store() : options.store;
     } else if (options.parent && options.parent.$store) {
-      self.$store = options.parent.$store
+      self.$store = options.parent.$store;
     }
 
     // add declared state to computed properties
@@ -164,6 +164,7 @@ const Mixin = {
       } else {
         Object.keys(self.$store).forEach((key) => {
           if (key in options.getters) {
+            // eslint-disable-next-line max-len
             computed = Object.assign(computed, createGetters(options.getters[key], self.$store[key]));
           }
         });
@@ -180,6 +181,7 @@ const Mixin = {
       } else {
         Object.keys(self.$store).forEach((key) => {
           if (key in options.mutations) {
+            // eslint-disable-next-line max-len
             methods = Object.assign(methods, createMutations(options.mutations[key], self.$store[key]));
           }
         });
@@ -220,10 +222,12 @@ export default function (Vue) {
 
   // backwards compatibility
   } else {
-    const _init = Vue.prototype._init
+    // eslint-disable-next-line no-underscore-dangle
+    const _init = Vue.prototype._init;
+    // eslint-disable-next-line no-underscore-dangle
     Vue.prototype._init = (options = {}) => {
       options.init = options.init ? [Mixin.beforeCreate].concat(options.init) : Mixin.beforeCreate;
       _init.call(this, options);
-    }
+    };
   }
-};
+}

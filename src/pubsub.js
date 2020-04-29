@@ -2,50 +2,53 @@
  * Simple publish-subscribe class used throughout module.
  */
 
- /**
-  * Simple publish-subscribe manager for executing events
-  * on state changes.
-  */
- export class PubSub {
-   /**
+/**
+ * Simple publish-subscribe manager for executing events
+ * on state changes.
+ */
+export default class PubSub {
+  /**
     * Create a new pubsub helper
     */
-   constructor() {
-     this.events = {};
-   }
+  constructor() {
+    this.events = {};
+  }
 
-   /**
-    * Subscribe to specific event.
-    *
-    * @param {string} event - Event name to subscribe to.
-    * @param {function} callback - Function to call on event.
-    */
-   subscribe(event, callback) {
-     const self = this;
+  get empty() {
+    return Object.keys(this.events).length === 0;
+  }
 
-     // sync callback list
-     if (!(event in self.events)) {
-       self.events[event] = [];
-     }
-     return self.events[event].push(callback);
-   }
+  /**
+   * Subscribe to specific event.
+   *
+   * @param {string} event - Event name to subscribe to.
+   * @param {function} callback - Function to call on event.
+   */
+  subscribe(event, callback) {
+    const self = this;
 
-   /**
-    * Subscribe to specific event.
-    *
-    * @param {string} event - Event name to broadcast.
-    * @param {object} payload - Arguments to pass to event callbacks.
-    */
-   publish(event, ...payload) {
-     const self = this;
+    // sync callback list
+    if (!(event in self.events)) {
+      self.events[event] = [];
+    }
+    return self.events[event].push(callback);
+  }
 
-     // complete event chain if it exists
-     if (!(event in self.events)) {
-       return [];
-     }
+  /**
+   * Subscribe to specific event.
+   *
+   * @param {string} event - Event name to broadcast.
+   * @param {object} payload - Arguments to pass to event callbacks.
+   */
+  publish(event, ...payload) {
+    const self = this;
 
-     // TODO: EMBED CALLBACKS IN TRY BLOCK?
-     return self.events[event].map(callback => callback(...payload));
-   }
- }
- 
+    // complete event chain if it exists
+    if (!(event in self.events)) {
+      return [];
+    }
+
+    // TODO: EMBED CALLBACKS IN TRY BLOCK?
+    return self.events[event].map(callback => callback(...payload));
+  }
+}
