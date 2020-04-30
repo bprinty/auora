@@ -15,6 +15,10 @@ class PubSub {
   constructor() {
     this.events = {};
   }
+
+  get empty() {
+    return Object.keys(this.events).length === 0;
+  }
   /**
    * Subscribe to specific event.
    *
@@ -68,7 +72,7 @@ function isPromise(obj) {
  */
 
 function isFunction(obj) {
-  return typeof obj === "function";
+  return typeof obj === 'function';
 }
 /**
  * Check if object is array type.
@@ -120,7 +124,7 @@ function deepEqual(target, other) {
 
 
   if (isArray(target)) {
-    if (target.length != other.length) {
+    if (target.length !== other.length) {
       return false;
     }
 
@@ -196,6 +200,18 @@ class StatusManager {
     return this.stack[this.stack.length - 1];
   }
   /**
+   * Get current status.
+   */
+
+
+  get previous() {
+    if (this.stack.length < 2) {
+      return this.idle;
+    } else {
+      return this.stack[this.stack.length - 2];
+    }
+  }
+  /**
    * Reset status manager back to idle.
    */
 
@@ -219,13 +235,17 @@ class StatusManager {
 
 
   pop() {
+    let state;
+
     if (this.stack.length > 1) {
-      this.stack.pop();
+      state = this.stack.pop();
 
       if (this.stack.length === 1) {
         this.callback();
       }
     }
+
+    return state;
   }
 
 }
@@ -255,32 +275,32 @@ class Store {
         state[key] = value;
       };
     });
-    self.mutations = Object.assign(self.mutations, params.mutations); // create actions proxy for better api
+    Object.assign(self.mutations, params.mutations); // create actions proxy for better api
 
     self.actions = params.actions || {};
     self.apply = new Proxy(self.actions, {
       get(target, name) {
         if (name in target) {
-          return (...payload) => {
-            return self.dispatch(name, ...payload);
-          };
+          return (...payload) => self.dispatch(name, ...payload);
         }
+
+        return undefined;
       }
 
     }); // getters proxy
 
     self.cache = {};
-    params.getters = params.getters || {};
-    self.get = new Proxy(params.getters, {
+    self.getters = params.getters || {};
+    self.get = new Proxy(self.getters, {
       get(target, name) {
         if (!(name in target)) {
-          throw new Error(`No getter defined with name \`${name}\``);
+          return undefined;
         }
 
         if (name in self.cache) {
           return self.cache[name];
         } else {
-          let result = target[name](self.state);
+          const result = target[name](self.state);
 
           if (!isFunction(result)) {
             self.cache[name] = result;
@@ -290,9 +310,7 @@ class Store {
         }
       }
 
-    });
-    self.getters = self.get; // parity with other libraries
-    // initialize
+    }); // initialize
 
     self.events = new PubSub();
     self.backup = clone(params.state); // create manager for status updates
@@ -323,7 +341,7 @@ class Store {
       });
     }); // create proxy for state to publish events
 
-    let state = clone(params.state);
+    const state = clone(params.state);
     self.state = new Proxy(state, {
       get(target, key) {
         // return function to reset state and stage to initial value
@@ -400,7 +418,7 @@ class Store {
               target = Object.assign(target, values);
             } else {
               values = target;
-            } // commit new data only
+            } // commit new data
 
 
             const updated = [];
@@ -409,13 +427,17 @@ class Store {
                 state[key] = clone(values[key]);
                 updated.push(key);
               }
+            }); // cascade deletes
+
+            Object.keys(state).forEach(key => {
+              if (!(key in target)) {
+                delete state[key];
+              }
             }); // publish updates if necessary
 
             if (updated.length !== 0) {
               self.cache = {};
-              updated.map(key => {
-                self.events.publish(key, self);
-              });
+              updated.forEach(key => self.events.publish(key, self));
               self.events.publish(status.COMMIT, self);
             }
 
@@ -432,6 +454,18 @@ class Store {
       }
 
     });
+  }
+  /**
+   * Register new constructs with the store.
+   *
+   * @param {object} params - State constructs to register with store.
+   */
+
+
+  register(params) {
+    Object.assign(this.state, params.state || {});
+    Object.assign(this.getters, params.getters || {});
+    Object.assign(this.actions, params.actions || {});
   }
   /**
    * Reset store back to base state.
@@ -508,14 +542,15 @@ class Store {
         state: self.stage,
         commit: self.commit,
         dispatch: self.dispatch,
-        getters: self.getters,
         get: self.get,
         apply: self.apply
       }, ...payload);
 
       if (!isPromise(result)) {
-        self.stage.commit();
-        self.events.publish(status.DISPATCH, name, ...payload, self);
+        if (self.status.previous === status.IDLE) {
+          self.stage.commit();
+          self.events.publish(status.DISPATCH, name, ...payload, self);
+        }
       }
     } catch (err) {
       if (!isPromise(result)) {
@@ -532,8 +567,10 @@ class Store {
 
     if (isPromise(result)) {
       result = result.then(() => {
-        self.stage.commit();
-        self.events.publish(status.DISPATCH, name, ...payload, self);
+        if (self.status.previous === status.IDLE) {
+          self.stage.commit();
+          self.events.publish(status.DISPATCH, name, ...payload, self);
+        }
       }).catch(err => {
         self.stage.rollback();
         throw err;
@@ -555,35 +592,6 @@ class Store {
  */
 
 const ARRAY_MODIFIERS = ['push', 'pop', 'shift', 'unshift', 'splice'];
-/**
- * Observable class for watching nested data changes and issuing
- * before/after callbacks.
- */
-
-class Observable {
-  /**
-   * Create new Observable object.
-   *
-   * @param {object} target - Data to create nested proxy for.
-   * @param {function} callback - Callback to execute after global
-   *     update/delete events.
-   */
-  constructor(target, callback) {
-    // normalize inputs
-    target = target || {}; // array
-
-    if (isArray(target)) {
-      return new ArrayProxy(target, callback);
-    } // object
-    else if (isObject(target)) {
-        return new ObjectProxy(target, callback);
-      } // other
-      else {
-          throw new Error('Cannot create Observable type for non Array or Object type.');
-        }
-  }
-
-}
 /**
  * Abstract class for managing proxies with subscriptions.
  */
@@ -654,6 +662,7 @@ class ObjectProxy extends PublishingProxy {
         if (isObject(target[key])) {
           target[key] = new ObjectProxy(target[key], callback);
         } else if (isArray(target[key])) {
+          // eslint-disable-next-line no-use-before-define
           target[key] = new ArrayProxy(target[key], callback);
         }
       });
@@ -687,6 +696,7 @@ class ObjectProxy extends PublishingProxy {
                 if (isObject(values[key])) {
                   values[key] = new ObjectProxy(values[key], callback);
                 } else if (isArray(target[key])) {
+                  // eslint-disable-next-line no-use-before-define
                   values[key] = new ArrayProxy(values[key], callback);
                 }
               });
@@ -717,6 +727,7 @@ class ObjectProxy extends PublishingProxy {
         if (isObject(value) && deep) {
           obj[prop] = new ObjectProxy(value, callback);
         } else if (isArray(value) && deep) {
+          // eslint-disable-next-line no-use-before-define
           obj[prop] = new ArrayProxy(value, callback);
         } else {
           obj[prop] = value;
@@ -846,234 +857,42 @@ class ArrayProxy extends PublishingProxy {
     });
   }
 
+}
+/**
+ * Observable class for watching nested data changes and issuing
+ * before/after callbacks.
+ */
+
+
+class Observable {
+  /**
+   * Create new Observable object.
+   *
+   * @param {object} target - Data to create nested proxy for.
+   * @param {function} callback - Callback to execute after global
+   *     update/delete events.
+   */
+  constructor(target, callback) {
+    // normalize inputs
+    target = target || {}; // array
+
+    if (isArray(target)) {
+      return new ArrayProxy(target, callback); // object
+    } else if (isObject(target)) {
+      return new ObjectProxy(target, callback); // other
+    } else {
+      throw new Error('Cannot create Observable type for non Array or Object type.');
+    }
+  }
+
 } // exports
-
-/**
- * Vue plugin for Auora
- */
-// -------
-
-/**
- * Normalize input data into dictionary, no matter
- * what input type. If function, call the function and
- * re-process. If array, make an object with keys and values
- * equal to array items.
- *
- * @param {object} data - Data to normalize.
- */
-
-function normalizeObject(data) {
-  if (isFunction(data)) {
-    return normalizeObject(data());
-  } else if (isArray(data)) {
-    const result = {};
-    data.forEach(item => {
-      result[item] = item;
-    });
-    return result;
-  } else {
-    return data;
-  }
-}
-/**
- * Dynamically create computed properties for Vue
- * components using component state spec and store.
- *
- * @param {object, dict} spec - Specifiaction of what to bind from store.
- * @param {object, dict} store - Store object or module.
- */
-
-
-function createParams(spec, store) {
-  const computed = {};
-
-  if (spec === true || spec === '*') {
-    spec = Object.keys(store.state);
-  }
-
-  const mapping = normalizeObject(spec);
-  Object.keys(mapping).forEach(key => {
-    computed[key] = {
-      cache: false,
-      get: () => store.state[mapping[key]],
-      set: value => store.commit(mapping[key], value)
-    };
-  });
-  return computed;
-}
-/**
- * Dynamically create computed properties for Vue
- * components using component getter spec and store.
- *
- * @param {object, dict} spec - Specifiaction of what to bind from store.
- * @param {object, dict} store - Store object or module.
- */
-
-
-function createGetters(spec, store) {
-  const computed = {};
-
-  if (spec === true || spec === '*') {
-    spec = Object.keys(store.get);
-  }
-
-  const mapping = normalizeObject(spec);
-  Object.keys(mapping).forEach(key => {
-    computed[key] = {
-      cache: false,
-      get: () => store.get[mapping[key]]
-    };
-  });
-  return computed;
-}
-/**
- * Dynamically create methods for Vue components
- * using component mutations spec and store.
- *
- * @param {object, dict} spec - Specifiaction of what to bind from store.
- * @param {object, dict} store - Store object or module.
- */
-
-
-function createMutations(spec, store) {
-  const methods = {};
-
-  if (spec === true || spec === '*') {
-    const state = Object.keys(store.state);
-    spec = Object.keys(store.mutations).filter(key => !state.includes(key));
-  }
-
-  const mapping = normalizeObject(spec);
-  Object.keys(mapping).forEach(key => {
-    methods[key] = (...payload) => store.commit(mapping[key], ...payload);
-  });
-  return methods;
-}
-/**
- * Dynamically create methods for Vue components
- * using component actions spec and store.
- *
- * @param {object, dict} spec - Specifiaction of what to bind from store.
- * @param {object, dict} store - Store object or module.
- */
-
-
-function createActions(spec, store) {
-  const methods = {};
-
-  if (spec === true || spec === '*') {
-    spec = Object.keys(store.actions);
-  }
-
-  const mapping = normalizeObject(spec);
-  Object.keys(mapping).forEach(key => {
-    methods[key] = store.apply[mapping[key]];
-  });
-  return methods;
-} // mixin
-// -----
-
-
-const Mixin = {
-  beforeCreate() {
-    const self = this;
-    const options = self.$options;
-    let computed = {};
-    let methods = {}; // inject store
-
-    if (options.store) {
-      self.$store = isFunction(options.store) ? options.store() : options.store;
-    } else if (options.parent && options.parent.$store) {
-      self.$store = options.parent.$store;
-    } // add declared state to computed properties
-
-
-    if ('state' in options) {
-      // global
-      if ('state' in self.$store) {
-        computed = Object.assign(computed, createParams(options.state, self.$store)); // modular
-      } else {
-        Object.keys(self.$store).forEach(key => {
-          if (key in options.state) {
-            computed = Object.assign(computed, createParams(options.state[key], self.$store[key]));
-          }
-        });
-      }
-    } // add declared getters to computed properties
-
-
-    if ('getters' in options) {
-      // global
-      if ('get' in self.$store) {
-        computed = Object.assign(computed, createGetters(options.getters, self.$store)); // modular
-      } else {
-        Object.keys(self.$store).forEach(key => {
-          if (key in options.getters) {
-            computed = Object.assign(computed, createGetters(options.getters[key], self.$store[key]));
-          }
-        });
-      }
-    } // add declared mutations to methods
-
-
-    if ('mutations' in options) {
-      // global
-      if ('mutations' in self.$store) {
-        methods = Object.assign(methods, createMutations(options.mutations, self.$store)); // modular
-      } else {
-        Object.keys(self.$store).forEach(key => {
-          if (key in options.mutations) {
-            methods = Object.assign(methods, createMutations(options.mutations[key], self.$store[key]));
-          }
-        });
-      }
-    } // add declared actions to methods
-
-
-    if ('actions' in options) {
-      // global
-      if ('actions' in self.$store) {
-        methods = Object.assign(methods, createActions(options.actions, self.$store)); // modular
-      } else {
-        Object.keys(self.$store).forEach(key => {
-          if (key in options.actions) {
-            methods = Object.assign(methods, createActions(options.actions[key], self.$store[key]));
-          }
-        });
-      }
-    } // assign additions
-
-
-    options.computed = Object.assign(options.computed || {}, computed);
-    options.methods = Object.assign(options.methods || {}, methods);
-  }
-
-}; // plugin
-// ------
-
-function VuePlugin (Vue) {
-  const version = Number(Vue.version.split('.')[0]); // use beforeCreate hook for Vue > 2
-
-  if (version >= 2) {
-    Vue.mixin(Mixin); // backwards compatibility
-  } else {
-    const _init = Vue.prototype._init;
-
-    Vue.prototype._init = (options = {}) => {
-      options.init = options.init ? [Mixin.beforeCreate].concat(options.init) : Mixin.beforeCreate;
-
-      _init.call(this, options);
-    };
-  }
-}
 
 /**
  * Main entry point for module
  */
 var index = {
   Store,
-  Observable,
-  VuePlugin
+  Observable
 };
 
 module.exports = index;
