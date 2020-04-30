@@ -51,6 +51,17 @@ class StatusManager {
   }
 
   /**
+   * Get current status.
+   */
+  get previous() {
+    if (this.stack.length < 2) {
+      return this.idle;
+    } else {
+      return this.stack[this.stack.length - 2];
+    }
+  }
+
+  /**
    * Reset status manager back to idle.
    */
   reset() {
@@ -70,12 +81,14 @@ class StatusManager {
    * if state manager has returned to resting.
    */
   pop() {
+    let state;
     if (this.stack.length > 1) {
-      this.stack.pop();
+      state = this.stack.pop();
       if (this.stack.length === 1) {
         this.callback();
       }
     }
+    return state;
   }
 }
 
@@ -106,7 +119,7 @@ export class Store {
         state[key] = value;
       };
     });
-    self.mutations = Object.assign(self.mutations, params.mutations);
+    Object.assign(self.mutations, params.mutations);
 
     // create actions proxy for better api
     self.actions = params.actions || {};
@@ -121,11 +134,11 @@ export class Store {
 
     // getters proxy
     self.cache = {};
-    params.getters = params.getters || {};
-    self.get = new Proxy(params.getters, {
+    self.getters = params.getters || {};
+    self.get = new Proxy(self.getters, {
       get(target, name) {
         if (!(name in target)) {
-          throw new Error(`No getter defined with name \`${name}\``);
+          return undefined;
         }
         if (name in self.cache) {
           return self.cache[name];
@@ -138,7 +151,6 @@ export class Store {
         }
       },
     });
-    self.getters = self.get; // parity with other libraries
 
     // initialize
     self.events = new PubSub();
@@ -259,15 +271,19 @@ export class Store {
               values = target;
             }
 
-            // cascade deletes
-            // TODO
-
-            // commit new data only
+            // commit new data
             const updated = [];
             Object.keys(values).forEach((key) => {
               if (!deepEqual(state[key], values[key])) {
                 state[key] = clone(values[key]);
                 updated.push(key);
+              }
+            });
+
+            // cascade deletes
+            Object.keys(state).forEach((key) => {
+              if (!(key in target)) {
+                delete state[key];
               }
             });
 
@@ -286,10 +302,18 @@ export class Store {
         target[key] = value;
         return true;
       },
-      // deleteProperty(target, key) {
-      //   throw new Error('Not Implemented!');
-      // }
     });
+  }
+
+  /**
+   * Register new constructs with the store.
+   *
+   * @param {object} params - State constructs to register with store.
+   */
+  register(params) {
+    Object.assign(this.state, params.state || {});
+    Object.assign(this.getters, params.getters || {});
+    Object.assign(this.actions, params.actions || {});
   }
 
   /**
@@ -365,13 +389,14 @@ export class Store {
         state: self.stage,
         commit: self.commit,
         dispatch: self.dispatch,
-        getters: self.getters,
         get: self.get,
         apply: self.apply,
       }, ...payload);
       if (!isPromise(result)) {
-        self.stage.commit();
-        self.events.publish(status.DISPATCH, name, ...payload, self);
+        if (self.status.previous === status.IDLE) {
+          self.stage.commit();
+          self.events.publish(status.DISPATCH, name, ...payload, self);
+        }
       }
     } catch (err) {
       if (!isPromise(result)) {
@@ -387,8 +412,10 @@ export class Store {
     // promise lifecycle
     if (isPromise(result)) {
       result = result.then(() => {
-        self.stage.commit();
-        self.events.publish(status.DISPATCH, name, ...payload, self);
+        if (self.status.previous === status.IDLE) {
+          self.stage.commit();
+          self.events.publish(status.DISPATCH, name, ...payload, self);
+        }
       }).catch((err) => {
         self.stage.rollback();
         throw err;

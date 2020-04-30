@@ -6,10 +6,10 @@
  * Simple publish-subscribe manager for executing events
  * on state changes.
  */
-export default class PubSub {
+export class PubSub {
   /**
-    * Create a new pubsub helper
-    */
+   * Create a new pubsub helper
+   */
   constructor() {
     this.events = {};
   }
@@ -52,3 +52,5 @@ export default class PubSub {
     return self.events[event].map(callback => callback(...payload));
   }
 }
+
+export default PubSub;

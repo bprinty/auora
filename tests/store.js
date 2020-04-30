@@ -61,6 +61,11 @@ export default new Store({
     shake({ state }) {
       delete state.noop;
     },
+
+    // action to test action chaining
+    square({ state, apply }) {
+      return apply.multiply(state.counter).then();
+    },
   },
   subscribe: {
     counter({ state }) {
