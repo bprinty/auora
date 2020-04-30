@@ -373,27 +373,69 @@ store.state.loading // false
 store.state.count // 0
 ```
 
-<!--
+### Composing Actions
 
-### Chaining Actions
-
-Another useful technique is
+For more complex use-cases, it can be useful for actions to dispatch to other actions during execution. For this, you can *compose* actions by using `apply` to dispatch other actions within an action. For example:
 
 ```javascript
 const store = new Store({
   state: { ... },
   actions: {
     actionA({ apply }) {
+      // code specific to actionA
       return apply.actionB();
     },
     actionB({ state }) {
       // code for actionB
     },
   }
-})
+});
 ```
 
--->
+Composing async actions is just as simple:
+
+```javascript
+const store = new Store({
+  state: { ... },
+  actions: {
+    actionA({ apply }) {
+      return apply.actionB().then((result) => {
+        // process actionB results in a different way
+      });
+    },
+    actionB({ state }) {
+      return new Promise((resolve, reject) => {
+        // code for actionB
+      });
+    },
+  }
+});
+```
+
+Finally, with async/await syntax:
+
+```javascript
+const store = new Store({
+  state: { ... },
+  actions: {
+    async actionA({ apply }) {
+      const result = await apply.actionB();
+      // process actionB results in a different way
+    },
+    actionB({ state }) {
+      return new Promise((resolve, reject) => {
+        // code for actionB
+      });
+    },
+  }
+});
+```
+
+::: tip NOTE
+
+When actions are composed, state transactions are not committed until the original parent action finishes. All nested actions will change the internal store `stage` object and a transaction with all the changes will happen at the end. This is designed to help protect against unwanted side effects with in-flight state changes within an action.
+
+:::
 
 
 ## Getters
@@ -787,9 +829,6 @@ export default {
 
 For examples of how to commit mutations in other front-end frameworks, see the [Examples](/examples/) section of the documentation.
 
-
-
-<br />
 ---
 ---
 <br />

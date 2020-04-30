@@ -4,10 +4,7 @@ As with any middleware library, there are architectural decisions developers nee
 
 1. [Application Structure](#application-structure) - Tips for how to structure large applications with complex stores.
 2. [Modules](#modules) - How to use multiple stores in an application for different logical blocks of functionality.
-
-<!--
-3. [Syncing Actions](#syncing-actions) - Guidelines for importing existing API utilities into a store as actions.
--->
+3. [Dynamic Registration](#dynamic-registration) - How to dynamically register store constructs.
 
 
 ## Application Structure
@@ -195,152 +192,61 @@ export default {
 For more example on how to use store modules in other frontend frameworks like **React** or **Svelte**, see the [Examples](/examples/) section of the documentation.
 
 
-<!--
+## Dynamic Registration
 
-TODO: THINK ABOUT THIS A LITTLE BIT MORE BEFORE IMPLEMENTING -- PERHAPS REVISIT AFTER WORKING THROUGH VUE EXAMPLES
-
-## Syncing Actions
-
-When working on a large applcation with c
+Dynamically registering store constructs can be useful for some types of applications that utilize [metaprogramming](https://en.wikipedia.org/wiki/Metaprogramming) techniques. To show how dynamically registering constructs works, consider another `counter` store:
 
 ```javascript
-
-import { map } from 'auora';
-
-function incrementCounter() {
-  return axios.post('/counter/').then(response => response.data.result);
-}
-
-function addToCounter(value) {
-  return axios.post('/counter/add', { amount: value }).then(response => response.data.result);
-}
-
 const store = new Store({
   state: {
-    counter: 0,
-  }
-  sync: {
-     counter: [
-       incrementCounter,
-       addToCounter
-     ],
-  }
-});
-```
-
-With the [Declarative](#declarative) syntax described above, you can sync existing API methods using the following syntax:
-
-```javascript
-const counter = {
-  default: 0,
-  sync: [
-    incrementCounter,
-    addToCounter
-  ]
-};
-
-const store = new Store({ counter });
-```
-
-```javascript
-// use api method outside store
-await addToCounter(5);
-
-// use api method and sync with store
-await store.actions.addToCounter(5);
-```
-
-In a component, this feels even more natural:
-
-```html
-<template>
-  <div>
-    <p>{{ counter }}</p>
-    <button @click="incrementCounter">increment counter</button>
-    <button @click="addToCounter(5)">add 5 to counter</button>
-  </div>
-</template>
-
-<script>
-import api from '@/api';
-
-export default {
-  name: 'counter',
-  store: {
-    state: ['counter'],
-    sync: {
-      counter: [
-        api.incrementCounter,
-        api.addToCounter,
-      ]
-    }
-  }
-}
-</script>
-```
-
-
-
-Revisiting our [authors/posts](#declarative) example above, here's how we could structure our application:
-
-```javascript
-// contents of api.js
-const authors = {
-  fetch: () => axios.get('/authors').then(response => response.data),
-  create: data => axios.post('/authors', data).then(response => response.data),
-  update: (id, data) => axios.put('/authors/' + id, data).then(response => response.data),
-};
-
-const posts = {
-  fetch: () => axios.get('/posts').then(response => response.data),
-};
-```
-
-```javascript
-// contents of store.js
-const authors = {
-  default: {},
-  sync: {
-    fetch: api.authors.fetch,
-    create: api.authors.create,
-    update: api.authors.update
+    count: 0,
   },
-};
-
-const posts = {
-  default: {},
-  sync: {
-    fetch: api.posts.fetch
-  }
-};
-
-// instantiate store with module
-const store = new Store({
-  authors,
-  posts,
+  actions: {
+    increment({ state }) {
+      state.count += 1;
+      return state.count;
+    },
+  },
 });
 ```
 
-You can use the functionality above like:
+Elsewhere in the application, it might be useful to augment store functionality by adding another action. To do this, use the `store.register()` method:
 
 ```javascript
-// issue api requests outside of store
-const authors = await api.authors.fetch();
-await api.authors.update(authors[0].id, { name: 'Foo Bar' });
+store.register({
+  actions: {
+    add({ state }, number) {
+      return new Promise((resolve) => {
+        state.count = state.count + number;
+        resolve(state.count);
+      });
+    },
+  }
+});
 
-// update store after changes
-const authors = await store.dispatch('authors.fetch');
-await store.dispatch('authors.update', authors[0].id, { name: 'Foo Bar' });
+// use action
+await store.apply.add(5);
 ```
 
- -->
+This will dynamically register input as if it were included when the `Store` was initially instantiated. You can similarly do the same with `state`, and `getters`. Here is an example showing the syntax:
 
+```javascript
+store.register({
+  state: {
+    newParam: null,
+  },
+  getters: {
+    getNewParam: state => state.newParam,
+  },
+  actions: {
+    ...
+  }
+});
+```
 
-<br />
 ---
 ---
 <br />
-
 
 ::: danger THAT'S IT!
 
