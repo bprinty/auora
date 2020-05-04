@@ -78,14 +78,12 @@ test("actions.nested", async () => {
 
 test("state.updates", async () => {
   assert.equal(store.state.counter, 0);
-  const noop = store.state.noop;
   const counter = store.state.counter;
   const history = store.state.history;
   const operations = store.state.operations;
 
   // assert state updates are visible
   store.apply.increment();
-  assert.equal(noop, store.state.noop);
   assert.notEqual(counter, store.state.counter);
   assert.notEqual(history, store.state.history);
   assert.notEqual(operations, store.state.operations);
@@ -178,4 +176,20 @@ test("store.register", async () => {
   assert.isTrue(typeof store.state.registered !== 'undefined');
   assert.isTrue(typeof store.apply.setCount !== 'undefined');
   assert.isTrue(typeof store.get.getCount !== 'undefined');
+});
+
+test("store.reset", async () => {
+  // change state
+  store.apply.increment();
+  assert.equal(store.state.counter, 1);
+  assert.deepEqual(store.state.history, [0, 1]);
+  assert.deepEqual(store.state.operations, ['increment']);
+
+  // reset
+  store.reset()
+
+  // assert reset
+  assert.equal(store.state.counter, 0);
+  assert.deepEqual(store.state.history, [0]);
+  assert.deepEqual(store.state.operations, []);
 });
