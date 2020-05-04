@@ -112,50 +112,6 @@ function clone(obj) {
     return obj;
   }
 }
-/**
- * Recursively check for object equality.
- */
-
-function deepEqual(target, other) {
-  // compare types
-  if (typeof target !== typeof other) {
-    return false;
-  } // compare arrays
-
-
-  if (isArray(target)) {
-    if (target.length !== other.length) {
-      return false;
-    }
-
-    for (let i = 0; i < target.length; i += 1) {
-      if (!deepEqual(target[i], other[i])) {
-        return false;
-      }
-    }
-
-    return true; // compare objects
-  } else if (isObject(target)) {
-    const keys = Object.keys(target).sort();
-
-    if (!deepEqual(keys, Object.keys(other).sort())) {
-      return false;
-    }
-
-    for (let i = 0; i < keys.length; i += 1) {
-      const key = keys[i];
-
-      if (!deepEqual(target[key], other[key])) {
-        return false;
-      }
-    }
-
-    return true;
-  } // compare values
-
-
-  return target === other;
-}
 
 /**
  * Class for managing state during data reflection.
@@ -168,7 +124,6 @@ const status = {
   IDLE: 'idle',
   RESET: 'reset',
   ROLLBACK: 'rollback',
-  UPDATE: 'update',
   COMMIT: 'commit',
   MUTATE: 'mutate',
   DISPATCH: 'dispatch'
@@ -266,7 +221,8 @@ class Store {
     params.state = params.state || {}; // set default options
 
     self.options = params.options || {
-      type: 'transactional'
+      type: 'transactional',
+      recurse: false
     }; // set from inputs
 
     self.mutations = {};
@@ -316,144 +272,13 @@ class Store {
     self.backup = clone(params.state); // create manager for status updates
 
     self.status = new StatusManager(status.IDLE, () => {
-      self.events.publish(status.IDLE, self);
-    }); // subscribe to specific state changes
-
-    Object.keys(params.subscribe || {}).forEach(key => {
-      self.events.subscribe(key, () => {
-        params.subscribe[key]({
-          state: self.stage,
-          commit: self.commit,
-          dispatch: self.dispatch
-        });
-        self.stage.commit();
-      });
+      self.events.publish(status.IDLE, self.state);
     }); // subscribe to events
 
-    Object.keys(params.events || {}).forEach(key => {
-      self.events.subscribe(key, (...payload) => {
-        params.events[key]({
-          state: self.stage,
-          commit: self.commit,
-          dispatch: self.dispatch
-        }, ...payload);
-        self.stage.commit();
-      });
-    }); // create proxy for state to publish events
+    Object.keys(params.events || {}).forEach(key => self.subscribe(key, params.events[key])); // create state and proxy for changing state
 
-    const state = clone(params.state);
-    self.state = new Proxy(state, {
-      get(target, key) {
-        // return function to reset state and stage to initial value
-        if (key === 'reset') {
-          return name => {
-            self.status.push(status.RESET); // reset single param
-
-            if (!isUndefined(name) && name in self.backup) {
-              const old = self.stage[name];
-              self.stage[name] = clone(self.backup[name]);
-              target[name] = clone(self.backup[name]);
-              self.events.publish(name, self.stage[name], old, self); // reset everything
-            } else {
-              self.stage = Object.assign(self.stage, clone(self.backup));
-              target = Object.assign(target, clone(self.backup)); // QUESTION: publish all specific state events?
-            }
-
-            self.cache = {};
-            self.events.publish(status.RESET, self);
-            self.status.pop();
-          };
-        }
-
-        return target[key];
-      },
-
-      set(target, key, value) {
-        // protect against state changes outside of mutations (strict mode)
-        if (self.options.type === 'strict') {
-          if (![status.MUTATE, status.RESET, status.COMMIT].includes(self.status.current)) {
-            throw new Error(`State variable ${key} should not be directly set outside of mutation or action.`);
-          }
-        } // set value
-
-
-        const old = target[key];
-        self.status.push(status.UPDATE);
-        target[key] = value;
-        self.stage[key] = value; // emit after
-
-        self.cache = {};
-        self.events.publish(key, target[key], old, self);
-        self.events.publish(status.UPDATE, key, target[key], old, self);
-        self.status.pop();
-        return true;
-      }
-
-    }); // create stage for state transactions
-
-    self.stage = new Proxy(clone(state), {
-      get(target, key) {
-        if (key === 'rollback') {
-          return name => {
-            self.status.push(status.ROLLBACK); // reset single param
-
-            if (!isUndefined(name) && name in self.backup) {
-              target[name] = clone(self.state[name]); // reset everything
-            } else {
-              target = Object.assign(target, clone(self.state));
-            }
-
-            self.events.publish(status.ROLLBACK, self);
-            self.status.pop();
-          };
-        } // return commit function to commit stage to current state
-
-
-        if (key === 'commit') {
-          return values => {
-            // normalize inputs
-            self.status.push(status.COMMIT);
-
-            if (isObject(values)) {
-              target = Object.assign(target, values);
-            } else {
-              values = target;
-            } // commit new data
-
-
-            const updated = [];
-            Object.keys(values).forEach(key => {
-              if (!deepEqual(state[key], values[key])) {
-                state[key] = clone(values[key]);
-                updated.push(key);
-              }
-            }); // cascade deletes
-
-            Object.keys(state).forEach(key => {
-              if (!(key in target)) {
-                delete state[key];
-              }
-            }); // publish updates if necessary
-
-            if (updated.length !== 0) {
-              self.cache = {};
-              updated.forEach(key => self.events.publish(key, self));
-              self.events.publish(status.COMMIT, self);
-            }
-
-            self.status.pop();
-          };
-        }
-
-        return target[key];
-      },
-
-      set(target, key, value) {
-        target[key] = value;
-        return true;
-      }
-
-    });
+    self.state = clone(params.state);
+    self.stage = clone(params.state);
   }
   /**
    * Register new constructs with the store.
@@ -463,7 +288,8 @@ class Store {
 
 
   register(params) {
-    Object.assign(this.state, params.state || {});
+    Object.assign(this.state, clone(params.state) || {});
+    Object.assign(this.stage, clone(params.state) || {});
     Object.assign(this.getters, params.getters || {});
     Object.assign(this.actions, params.actions || {});
   }
@@ -473,7 +299,76 @@ class Store {
 
 
   reset() {
-    this.state.reset();
+    const self = this;
+    self.status.push(status.RESET);
+    self.state = clone(self.backup);
+    self.stage = clone(self.backup);
+    self.events.publish(status.RESET);
+    self.status.pop();
+  }
+  /**
+   * Flush state changes from stage to store. This
+   * method is called after the end of an action or mutation
+   * to safely update the store on callable success.
+   *
+   * @param {boolean} publish - Whether or not to publish a `commit`
+   *     event after this method is called.
+   */
+
+
+  flush(publish = true) {
+    const self = this;
+
+    if (publish) {
+      self.status.push(status.COMMIT);
+    } // push the changes to state
+
+
+    if (self.options.recurse) {
+      self.state = clone(self.stage);
+    } else {
+      self.state = { ...self.stage
+      };
+    } // reset getters cache
+
+
+    self.cache = {}; // publish updates if specfied
+
+    if (publish) {
+      self.events.publish(status.COMMIT);
+      self.status.pop();
+    }
+  }
+  /**
+   * Rollback staged changes and update stage with state. This
+   * method is called after the end of an action or mutation
+   * to safely rollback the store on callable success.
+   *
+   * @param {boolean} publish - Whether or not to publish a `rollback`
+   *     event after this method is called.
+   */
+
+
+  rollback(publish = true) {
+    const self = this;
+
+    if (publish) {
+      self.status.push(status.ROLLBACK);
+    } // push the changes to state
+
+
+    if (self.options.recurse) {
+      self.stage = clone(self.state);
+    } else {
+      self.stage = { ...self.state
+      };
+    } // publish updates if specfied
+
+
+    if (publish) {
+      self.events.publish(status.ROLLBACK);
+      self.status.pop();
+    }
   }
   /**
    * Proxy for subscribing to specific state changes
@@ -484,8 +379,20 @@ class Store {
 
 
   subscribe(name, callback) {
-    const self = this;
-    self.events.subscribe(name, callback);
+    const self = this; // check validity
+
+    const values = Object.values(status);
+
+    if (!values.includes(name)) {
+      const choices = values.join(', ');
+      throw new Error(`Cannot subscribe to \`${name}\`. Valid choices are: ${choices}`);
+    } // subscribe
+
+
+    self.events.subscribe(name, (...payload) => {
+      callback(self.stage, ...payload);
+      self.flush(false);
+    });
   }
   /**
    * Commit change to store using mutation.
@@ -509,8 +416,8 @@ class Store {
 
     try {
       result = self.mutations[name](self.stage, ...payload);
-      self.stage.commit();
-      self.events.publish(status.MUTATE, name, ...payload, self); // reset to idle
+      self.flush();
+      self.events.publish(status.MUTATE, name, ...payload); // reset to idle
     } finally {
       self.status.pop();
     }
@@ -541,6 +448,7 @@ class Store {
       result = self.actions[name]({
         state: self.stage,
         commit: self.commit,
+        flush: () => self.flush(false),
         dispatch: self.dispatch,
         get: self.get,
         apply: self.apply
@@ -548,13 +456,13 @@ class Store {
 
       if (!isPromise(result)) {
         if (self.status.previous === status.IDLE) {
-          self.stage.commit();
-          self.events.publish(status.DISPATCH, name, ...payload, self);
+          self.flush();
+          self.events.publish(status.DISPATCH, name, ...payload);
         }
       }
     } catch (err) {
       if (!isPromise(result)) {
-        self.stage.rollback();
+        self.rollback();
       }
 
       throw err;
@@ -568,11 +476,11 @@ class Store {
     if (isPromise(result)) {
       result = result.then(() => {
         if (self.status.previous === status.IDLE) {
-          self.stage.commit();
-          self.events.publish(status.DISPATCH, name, ...payload, self);
+          self.flush();
+          self.events.publish(status.DISPATCH, name, ...payload);
         }
       }).catch(err => {
-        self.stage.rollback();
+        self.rollback();
         throw err;
       }).finally(() => {
         self.status.pop();
