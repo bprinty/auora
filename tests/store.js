@@ -19,12 +19,8 @@ export default new Store({
     noop: {},
   },
   getters: {
-    first(state) {
-      return state.history[0];
-    },
-    record(state) {
-      return index => state.history[index - 1];
-    },
+    first: state => state.history[0],
+    record: state => index => state.history[index - 1],
   },
   mutations: {
     subtract(state, value) {
@@ -47,8 +43,10 @@ export default new Store({
     },
 
     // async action with status update
-    multiply({ state }, fold) {
-      state.commit({ status: 'on' });
+    multiply({ state, flush }, fold) {
+      // state.commit({ status: 'on' });
+      state.status = 'on';
+      flush();
       return new Promise((resolve) => {
         state.counter *= fold;
         resolve(state.counter);
@@ -67,15 +65,11 @@ export default new Store({
       return apply.multiply(state.counter).then();
     },
   },
-  subscribe: {
-    counter({ state }) {
+  events: {
+    commit(state) {
       state.history.push(state.counter);
     },
-  },
-  events: {
-    // update
-    // commit
-    dispatch({ state }, name) {
+    dispatch(state, name) {
       state.operations.push(name);
     },
   },
