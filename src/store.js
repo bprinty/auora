@@ -180,12 +180,19 @@ export class Store {
 
   /**
    * Reset store back to base state.
+   *
+   * @param {string} key - State param to reset in store.
    */
-  reset() {
+  reset(key) {
     const self = this;
     self.status.push(status.RESET);
-    self.state = clone(self.backup);
-    self.stage = clone(self.backup);
+    if (typeof key === 'undefined') {
+      self.state = clone(self.backup);
+      self.stage = clone(self.backup);
+    } else {
+      self.state[key] = clone(self.backup[key]);
+      self.stage[key] = clone(self.backup[key]);
+    }
     self.events.publish(status.RESET);
     self.status.pop();
   }
