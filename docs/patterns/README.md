@@ -4,6 +4,7 @@ As with any middleware library, there are architectural decisions developers nee
 
 1. [Application Structure](#application-structure) - Tips for how to structure large applications with complex stores.
 2. [Modules](#modules) - How to use multiple stores in an application for different logical blocks of functionality.
+2. [Data Models](#data-models) - An example of how to define and use data models in an application.
 3. [Dynamic Registration](#dynamic-registration) - How to dynamically register store constructs.
 
 
@@ -115,17 +116,21 @@ const profile = new Store({
 
 const todos = new Store({
   state: {
-    todos: []
-  }
+    // will contain indexed data for each instance
+    // 1: { id: 1, text: 'Todo text', done: false },
+  },
   actions: {
     fetch({ state }) {
       return axios.get('/todos').then(response => {
-        state.todos = response.data;
+        response.data.map(todo => {
+          state[todo.id] = todo;
+        });
       });
     },
     create({ state }, payload) {
       return axios.post('/todos', { payload }).then(response => {
-        state.todos.push(response.data);
+        const todo = response.data;
+        state.todos[todo.id] = todo;
       });
     }
   }
@@ -189,7 +194,66 @@ export default {
 </script>
 ```
 
-For more example on how to use store modules in other frontend frameworks like **React** or **Svelte**, see the [Examples](/examples/) section of the documentation.
+For more example on how to use store modules in other frontend frameworks like **React** or **Angular**, see the [Examples](/examples/) section of the documentation.
+
+<!--
+
+## Data Models
+
+... How to use
+
+Authors
+Posts
+Comments
+
+```javascript
+function actions(url) {
+  return {
+    fetch({ state }) {
+      return axios.get(url).then((response) => {
+        response.data.map(item => {
+          state[item.id] = item;
+        });
+      });
+    },
+    get({ state }, id) {
+      return axios.get(url + '/' + id).then((response) => {
+        state[response.data.id] = response.data;
+      });
+    },
+    create({ state }, payload) {
+      return axios.post(url, payload).then((response) => {
+        state[response.data.id] = response.data;
+      });
+    },
+    update({ state }, payload) {
+      return axios.put(url + '/' + id, payload).then((response) => {
+        const item = response.data;
+        state[item.id] = Object.assign({}, state[item.id], item);
+      });
+    },
+    delete({ state }, id) {
+      return axios.delete(url + '/' + id).then(() => {
+        delete state[id];
+      });
+    },
+  }
+}
+```
+
+```javascript
+authors = new Store({
+  state: {},
+  actions: actions(
+    '/authors',
+    '/authors/:id',
+  )
+})
+```
+
+
+
+-->
 
 
 ## Dynamic Registration
