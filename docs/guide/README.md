@@ -62,10 +62,10 @@ const store = new Store({
 
   // events
   events: {
-    update(param, { state }) {
-      console.log(`[INFO] Incremented \`${param}\` to \`${state.counter}\``);
+    commit(state) {
+      console.log(`[INFO] Counter value is \`${state.counter}\``);
     },
-    dispatch(action) {
+    dispatch(state, action) {
       console.log(`[INFO] Finished executing action \`${action}\``);
     }
   }
@@ -84,7 +84,7 @@ And once this is defined, you can use the store throughout your application like
 console.log(store.state.count); // 0
 
 store.apply.increment();
-// [INFO] Incremented `counter` to `1`
+// [INFO] Counter value is `1`
 // [INFO] Finished executing action `increment`
 ```
 
@@ -132,7 +132,7 @@ const state = {
 };
 ```
 
-The most important thing to understand about state is that **it should not be chaned directly**.
+The most important thing to understand about state is that **it should not be changed directly**.
 
 ::: tip NOTE
 
@@ -187,6 +187,57 @@ export default {
 ```
 
 For examples of how to use state in other front-end frameworks, see the [Examples](/examples/) section of the documentation.
+
+<!--
+
+### Changing State
+
+...
+
+::: tip DO
+
+```javascript
+// within an action
+state[0] = Object.assign(state[0], { done: false });
+```
+
+:::
+
+::: tip DONT
+// within an action
+state[0].done = false;
+:::
+
+If you're working with deeply nested data like so:
+
+```javascript
+const store = Store({
+  state: {
+    users: {
+      1: { id: 1, name: 'Jane Doe' },
+      2: { id: 2, name: 'John Doe' },
+    },
+    todos: {
+      1: { id: 1, text: 'Item 1', done: false },
+      2: { id: 2, text: 'Item 2', done: false },
+    }
+  }
+})
+```
+
+
+However, if you're not working with a large dataset, you can instantiate ...
+
+```javascript
+const store = Store({
+  state: { ... },
+  options: {
+    recurse: true,
+  }
+})
+```
+
+-->
 
 
 ## Actions
@@ -344,7 +395,7 @@ const store = new Store({
  store.state.count // 0
  ```
 
-If you need to commit intermediate changes to `state` inside of an action, you can still do so with the `state.commit()` method. For example, if we need to set the state for a `loading` variable while a request is issued, we can use:
+If you need to commit intermediate changes to `state` inside of an action, you can still do so with the `store.flush()` method. For example, if we need to set the state for a `loading` variable while a request is issued, we can use:
 
 ```javascript
 const store = new Store({
@@ -353,14 +404,14 @@ const store = new Store({
     count: 0,
   },
   actions: {
-    errorRequest({ state }) {
+    errorRequest({ state, flush }) {
       state.loading = true;
-      state.commit(); // commit changes to state
+      flush(); // flush changes to state
       return axios.get('/missing-url').then(() => {
         state.count = 1;
       }).finally(() => {
         state.loading = false;
-        state.commit();
+        flush();
       });
     }
   }
@@ -556,31 +607,21 @@ Now that we've covered the machinery to manage a data [Store](#store), let's tal
 
 This package internally uses a [Publish-Subscribe](https://en.wikipedia.org/wiki/Publish%E2%80%93subscribe_pattern) pattern that users can subscribe to for executing functions when specific types of events take place. If you've seen the diagrams [above](#action-flow), you're already somewhat familiar with events that are broadcasted (*published*) throughout store operations.
 
-There are two types of events that are *published* throughout the execution of store processes:
-
-1. [Global Events](#global-events) - Events that *publish* when **any** actions are dispatched or store parameters are changed.
-2. [Specific Events](#specific-events) - Events that *publish* when **specific** actions are dispatched or store parameters are changed.
-
-Each of these are described in more detail below, along with examples of how to subscribe to each type of event.
-
-
-### Global Events
-
 The following global events are *published* throughout the execution of store operations:
 
 | Event | Description |
 |-------|-------------|
 | `idle` | Execute when the state manager goes back into an `idle` state (no action, mutation, or state change is taking place). |
 | `reset` | Execute after any `reset` operation takes place (i.e. `store.reset()`) |
-| `update` | Execute after any `state` parameter is changed directly. |
 | `commit` | Execute after state changes are committed to the store. |
 | `rollback` | Execute after any `rollback` operation takes place. |
 | `dispatch` | Execute after any `action` is dispatched. |
+| `mutate` | Execute after any `mutation` is committed. |
 
 To subscribe to these global events, use the `subscribe` method on `Store` objects:
 
 ```javascript
-store.subscribe('action', (action, input, store) => {
+store.subscribe('action', (state, action, input) => {
   console.log(`[INFO] Action \`${action}\`dispatched with input \`${input}\`!`);
 });
 
@@ -592,17 +633,17 @@ Here's a more complete example showing subscriptions to the majority of event ty
 
 ```javascript
 // idle
-store.subscribe('idle', (store) => {
+store.subscribe('idle', (state) => {
   console.log('[INFO] Store back to idle.');
 });
 
 // commit
-store.subscribe('commit', (store) => {
+store.subscribe('commit', (state) => {
   console.log(`[INFO] State has been updated!`);
 })
 
 // dispatch\
-store.subscribe('dispatch', (action, input, store) => {
+store.subscribe('dispatch', (state, action, input) => {
   console.log(`[INFO] Action \`${action}\` dispatched with input \`${input}\``);
 });
 
@@ -622,16 +663,13 @@ Note that the code above is subscribing to the *termination* of **state**, **mut
 
 :::
 
+<!--
 
 ### Specific Events
 
-Along with these global events, you can also subscribe to specific **state** changes, dispatched **actions**, or **mutation** commits. To subscribe to these events, call the `subscribe()` method available from the **Store** subsection you're interested in:
+Along with these global events, you can also subscribe to specific dispatched **actions**, or **mutation** commits. To subscribe to these events, call the `subscribe()` method available from the **Store** subsection you're interested in:
 
 ```javascript
-store.subscribe('counter', (newValue, oldValue) => {
-  console.log(`[INFO] Updated \`counter\` from \`${oldValue}\` to \`${newValue}\``);
-});
-
 store.subscribe('increment', (...payload) => {
   console.log(`[INFO] Dispatched action \`increment\``);
 });
@@ -643,22 +681,12 @@ More specifically, here is how to subscribe to several data updates and operatio
 const store = new Store({
   state: { counter: 0 },
   actions: {    
-    increment(store) {
-      return axios.post('/counter/increment').then(response => {
-        store.commit('counter', response.data.result);
-      });
-    },
-    add(store, value) {
+    add(state, value) {
       return axios.post('/counter/add', { value }).then(response => {
-        store.commit('counter', response.data.result);
+        state.counter = response.data.result;
       });
     }
   }
-});
-
-// subscribe to state change
-store.subscribe('counter', (input) => {
-  console.log(`[INFO] \`counter\` param changed to value \`${input}\``);
 });
 
 // subscribe to action
@@ -669,15 +697,16 @@ store.subscribe('add', (input) => {
 // execute other action with subscription
 await store.apply.add(1);
 /*
-[INFO] `counter` param changed to value `2`
 [INFO] `add` action dispatched with input `1`
 */
 ```
 
+-->
+
 
 ### Defining Events
 
-As you might remember from other sections of the documentation, defining events when instantiating a **Store** is possible with the `events` and `subscribe` keywords. The `events` block is where you can subscribe to **global** events like `dispath`, `reset`, `commit`, etc... . The `subscribe` block is where you can subscribe to **specific** state changes or action calls. For example:
+As you might remember from other sections of the documentation, defining events when instantiating a **Store** is possible with the `events` keyword. The `events` block is where you can subscribe to **global** events like `dispatch`, `reset`, `commit`, etc... . For example:
 
 ```javascript
 import { Store } from 'auora';
@@ -693,19 +722,15 @@ const store = new Store({
     },
   },
   events: {
-    dispatch(action, ...payload, { state }) {
+    commit(state, newValue, oldValue) {
+      state.history.push(state.counter);
+    },
+    dispatch(state, action, ...payload) {
       state.operations.push({ action, payload });
     }
   }
-  subscribe: {
-    counter(newValue, oldValue, { state }) {
-      state.history.push(state.counter);
-    },
-  },
 });
 ```
-
-Under the hood, `events` and `subscribe` definitions are consolidated into the same data structure, but it helps for code clarity and readability to have separate constructs for defining **global** and **specific** actions.
 
 
 ## Mutations
@@ -786,7 +811,7 @@ store.commit('counter', 5);
 // increment counter
 store.commit('counter', store.state.counter + 1);
 
-// reset counter
+// reset state counter
 store.reset('counter');
 ```
 

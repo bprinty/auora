@@ -99,18 +99,13 @@ const store = new Store({
 
   // events
   events: {
-    dispatch(action, ...payload, { state }) {
+    commit(state) {
+      state.history.push(state.count);
+    },
+    dispatch(state, action, ...payload) {
       state.operations.push({ action, payload });
     }
   }
-
-  // subscriptions
-  subscribe: {
-    count(newValue, oldValue, { state }) {
-      state.history.push(state.count);
-    },
-  },
-
 });
 ```
 
@@ -134,15 +129,15 @@ store.state.count // 1
 store.state.history // [0, 1]
 store.state.operations // [{action: 'increment', payload: []}]
 
-store.reset('count');
+store.reset();
 store.state.count // 0
-store.state.history // [0, 1, 0]
-store.state.operations // [{action: 'increment', payload: []}]
+store.state.history // [0]
+store.state.operations // []
 
 store.apply.add(4).then(() => {
   store.state.count // 4
-  store.state.history // [0, 1, 0, 4]
-  store.state.operations // [{action: 'increment', payload: []}, {action: 'add', payload: [4]}]
+  store.state.history // [0, 4]
+  store.state.operations // [{action: 'add', payload: [4]}]
 });
 ```
 
