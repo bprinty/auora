@@ -55,6 +55,7 @@ beforeEach(() => {
 // tests
 // -----
 const iterations = 1000;
+const threshold = 150;
 
 test("performance.create", async () => {
   const start = Date.now();
@@ -63,7 +64,7 @@ test("performance.create", async () => {
     store.apply.sync({ foo: 'bar' });
   }
   const delta = Date.now() - start;
-  assert.isBelow(delta, 50);
+  assert.isBelow(delta, threshold);
 });
 
 test("performance.update", async () => {
@@ -78,7 +79,7 @@ test("performance.update", async () => {
     store.apply.sync({ id: i + 1, foo: 'baz' });
   }
   const delta = Date.now() - start;
-  assert.isBelow(delta, 50);
+  assert.isBelow(delta, threshold);
 });
 
 test("performance.remove", async () => {
@@ -93,5 +94,5 @@ test("performance.remove", async () => {
     store.apply.remove(i + 1);
   }
   const delta = Date.now() - start;
-  assert.isBelow(delta, 50);
+  assert.isBelow(delta, threshold);
 });

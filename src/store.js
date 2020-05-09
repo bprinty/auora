@@ -5,7 +5,9 @@
 
 // imports
 import PubSub from './pubsub';
-import { isFunction, isPromise, clone } from './utils';
+import {
+  isFunction, isPromise, isObject, clone,
+} from './utils';
 
 
 /**
@@ -93,6 +95,7 @@ class StatusManager {
  * Simple store helper for managing state in an application.
  */
 export class Store {
+
   /**
    * Create a new store helper.
    *
@@ -105,12 +108,18 @@ export class Store {
 
     // set default options
     self.options = params.options || {
-      type: 'transactional',
       recurse: false,
     };
 
-    // set from inputs
+    // register constructs
+    self.stage = {};
+    self.state = {};
+    self.actions = {};
+    self.getters = {};
     self.mutations = {};
+    self.register(params);
+
+    // set from inputs
     Object.keys(params.state).forEach((key) => {
       self.mutations[key] = (state, value) => {
         state[key] = value;
@@ -119,7 +128,6 @@ export class Store {
     Object.assign(self.mutations, params.mutations);
 
     // create actions proxy for better api
-    self.actions = params.actions || {};
     self.apply = new Proxy(self.actions, {
       get(target, name) {
         if (name in target) {
@@ -131,7 +139,6 @@ export class Store {
 
     // getters proxy
     self.cache = {};
-    self.getters = params.getters || {};
     self.get = new Proxy(self.getters, {
       get(target, name) {
         if (!(name in target)) {
@@ -160,10 +167,6 @@ export class Store {
 
     // subscribe to events
     Object.keys(params.events || {}).forEach(key => self.subscribe(key, params.events[key]));
-
-    // create state and proxy for changing state
-    self.state = clone(params.state);
-    self.stage = clone(params.state);
   }
 
   /**
@@ -176,6 +179,15 @@ export class Store {
     Object.assign(this.stage, clone(params.state) || {});
     Object.assign(this.getters, params.getters || {});
     Object.assign(this.actions, params.actions || {});
+    Object.assign(this.mutations, params.mutations || {});
+
+    // detect state shape
+    this.nested = [];
+    Object.keys(this.state).forEach((key) => {
+      if (isObject(this.state[key])) {
+        this.nested.push(key);
+      }
+    });
   }
 
   /**
@@ -214,8 +226,29 @@ export class Store {
     // push the changes to state
     if (self.options.recurse) {
       self.state = clone(self.stage);
-    } else {
+
+    // if top-level is index
+    } else if (self.nested.length === 0) {
       self.state = { ...self.stage };
+
+    // nested items with index
+    } else {
+
+      // cascade updates
+      Object.keys(self.stage).forEach((key) => {
+        if (self.nested.includes(key)) {
+          self.state[key] = { ...self.stage[key] };
+        } else {
+          self.state[key] = self.stage[key];
+        }
+      });
+
+      // cascade deletes
+      Object.keys(self.state).forEach((key) => {
+        if (!(key in self.stage)) {
+          delete self.state[key];
+        }
+      });
     }
 
     // reset getters cache
@@ -243,11 +276,7 @@ export class Store {
     }
 
     // push the changes to state
-    if (self.options.recurse) {
-      self.stage = clone(self.state);
-    } else {
-      self.stage = { ...self.state };
-    }
+    self.stage = clone(self.state);
 
     // publish updates if specfied
     if (publish) {
