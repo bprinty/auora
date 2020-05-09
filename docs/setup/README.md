@@ -47,12 +47,13 @@ const store = new Store({
 
 See the [Guide](/guide/) section of the documentation for more information on how to fully utilize all of the features this library provides.
 
-<!-- There are several configuration options you can change when using this module. The list below will likely grow throughout the lifecycle of this project:
+## Options
+
+There are several configuration options you can change when using this module. The list below will likely grow throughout the lifecycle of this project:
 
 | Option | Description | Default |
 |--------|-------------|---------|
-| `transactions` | Toggle transactional support when *actions* are dispatched from store. Setting this value to `false` can improve performance. | `true` |
-| `strict` | Require users to only change state through mutations, and don't track changes to deeply nested properties. | `false` |
+| `recurse` | Recursively commit data during state transactions. This will slow down applications storing a lot of state data  but will enable an easier API for updating deeply nested data. | `false` |
 
 Here is how you can set specific options when creating [Store](/guide/README.md#store) objects from this library:
 
@@ -60,14 +61,13 @@ Here is how you can set specific options when creating [Store](/guide/README.md#
 const store = new Store({
   state: { ... },
   options: {
-    transactions: true,
-    strict: false,
+    recurse: false,
   }
 });
 ```
 
 ::: tip
 
-The code above also highlights all of option defaults.
+The code above shows all of option defaults.
 
-::: -->
+:::

@@ -4,8 +4,11 @@ As with any middleware library, there are architectural decisions developers nee
 
 1. [Application Structure](#application-structure) - Tips for how to structure large applications with complex stores.
 2. [Modules](#modules) - How to use multiple stores in an application for different logical blocks of functionality.
-2. [Data Models](#data-models) - An example of how to define and use data models in an application.
 3. [Dynamic Registration](#dynamic-registration) - How to dynamically register store constructs.
+
+<!--
+4. [Data Models](#data-models) - An example of how to define and use data models in an application.
+ -->
 
 
 ## Application Structure
@@ -101,6 +104,9 @@ We've alluded to using modules in previous sections of the documentation, but no
 As an example, in a **Todo List** application, we might want to have separate stores for 1) managing a user's profile information, and 2) managing a user's todo list. Data management across each of those stores operates independently, so we don't technically need to make them connected in any way by putting them in the same store. Here is what defining multiple stores for that use case might look like:
 
 ```javascript
+/**
+ * Profile store.
+ */
 const profile = new Store({
   state: {
     name: '<anonymous>',
@@ -114,6 +120,10 @@ const profile = new Store({
   },
 })
 
+
+/**
+ * Todo collection store.
+ */
 const todos = new Store({
   state: {
     // will contain indexed data for each instance
@@ -244,14 +254,26 @@ function actions(url) {
 ```javascript
 authors = new Store({
   state: {},
-  actions: actions(
-    '/authors',
-    '/authors/:id',
-  )
-})
+  actions: actions('/authors'),
+  getters: {
+    posts: state => authorId => posts.filter(item => item.authorId == authorId)
+  }
+});
+
+posts = new Store({
+  state: {},
+  actions: actions('/posts'),
+  getters: {
+    author: state => postId => authors.state[state[postId]];
+    comments: state => postId => state[postId].comments.map(id => comments.state[id]);
+  }
+});
+
+comments = new Store({
+  state: {},
+  actions: actions('/comments')
+});
 ```
-
-
 
 -->
 

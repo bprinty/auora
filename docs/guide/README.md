@@ -188,56 +188,93 @@ export default {
 
 For examples of how to use state in other front-end frameworks, see the [Examples](/examples/) section of the documentation.
 
-<!--
 
 ### Changing State
 
-...
-
-::: tip DO
+State should generally be changed within an [Action](#actions). For example, here is an action that changes the `counter` state from the example above:
 
 ```javascript
-// within an action
-state[0] = Object.assign(state[0], { done: false });
-```
-
-:::
-
-::: tip DONT
-// within an action
-state[0].done = false;
-:::
-
-If you're working with deeply nested data like so:
-
-```javascript
-const store = Store({
+const store = new Store({
   state: {
-    users: {
-      1: { id: 1, name: 'Jane Doe' },
-      2: { id: 2, name: 'John Doe' },
+    counter: 0
+  },
+  actions: {
+    increment({ state }) {
+      state.counter += 1;
     },
-    todos: {
-      1: { id: 1, text: 'Item 1', done: false },
-      2: { id: 2, text: 'Item 2', done: false },
-    }
-  }
-})
+  },
+});
+
+// using action to change state
+store.state.counter // 0
+store.apply.increment();
+store.state.counter // 1
 ```
 
+Although possible, **it's highly recommended to not change state outside of actions or mutations**. Some other general guidelines for safely changing state **within** actions to avoid unwanted consequences include:
 
-However, if you're not working with a large dataset, you can instantiate ...
+  1. Declare all top-level state placeholders when instantiating the store.
+  2. Don't change properties for nested data structures directly - use the operator spread syntax when updating data.
+
+
+Each of these is explained in more detail within the sections immediately below.
+
+
+#### State Placeholders
+
+If your store contains multiple data models, be sure to configure your store an empty object for each model. For example:
 
 ```javascript
-const store = Store({
-  state: { ... },
-  options: {
-    recurse: true,
-  }
+new Store({
+  state: {
+    authors: {},
+    posts: {},
+    comments: {},
+  },
+  ...
+});
+```
+
+This helps the `Store` object know how to handle nested data updates during state transactions.
+
+
+#### Changing Nested Data
+
+When changing deeply nested data structures, replace any nested objects with a fresh one. For example, if you're managing data for your store at the top level, avoid this type of state change inside actions:
+
+```javascript
+// DONT
+state[0].done = false;
+```
+
+Instead, use the operator spread syntax when updating nested data:
+
+```javascript
+// DO
+state[0] = { done: true, ...state[0] };
+// or
+state[0] = Object.assign({}, state[0], { done: true });
+```
+
+You can use the same pattern when changing nested data. For instance, if you declare the initial state for your store using:
+
+```javascript
+const store = new Store({
+  state: {
+    todos: {},
+  },
+  ...
 })
 ```
 
--->
+Change `todos` data inside actions using the same type of assignment:
+
+```javascript
+// inside of action
+state.todos[0] = { done: true, ...state.todos[0] };
+```
+
+Changing nested data this way will help with frameworks who provide reactivity on data updates (i.e. Vue), and will also ensure that [State Transactions](#transactions) process as expected. If you aren't dealing with a large dataset and want to be able to make state changes without worrying about object assignment, you can set the `recurse` Store option to `true` (see the [Configuration](/setup/README.md#configuration) section for more information).
 
 
 ## Actions
@@ -394,6 +431,12 @@ const store = new Store({
  // Error!
  store.state.count // 0
  ```
+
+::: tip NOTE
+
+See the [Changing State](#changing-state) section above for more information on how to safely make state changes in a way that doesn't result in unwanted side-effects.
+
+:::
 
 If you need to commit intermediate changes to `state` inside of an action, you can still do so with the `store.flush()` method. For example, if we need to set the state for a `loading` variable while a request is issued, we can use:
 
