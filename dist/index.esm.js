@@ -219,11 +219,16 @@ class Store {
     params.state = params.state || {}; // set default options
 
     self.options = params.options || {
-      type: 'transactional',
       recurse: false
-    }; // set from inputs
+    }; // register constructs
 
+    self.stage = {};
+    self.state = {};
+    self.actions = {};
+    self.getters = {};
     self.mutations = {};
+    self.register(params); // set from inputs
+
     Object.keys(params.state).forEach(key => {
       self.mutations[key] = (state, value) => {
         state[key] = value;
@@ -231,7 +236,6 @@ class Store {
     });
     Object.assign(self.mutations, params.mutations); // create actions proxy for better api
 
-    self.actions = params.actions || {};
     self.apply = new Proxy(self.actions, {
       get(target, name) {
         if (name in target) {
@@ -244,7 +248,6 @@ class Store {
     }); // getters proxy
 
     self.cache = {};
-    self.getters = params.getters || {};
     self.get = new Proxy(self.getters, {
       get(target, name) {
         if (!(name in target)) {
@@ -273,10 +276,7 @@ class Store {
       self.events.publish(status.IDLE, self.state);
     }); // subscribe to events
 
-    Object.keys(params.events || {}).forEach(key => self.subscribe(key, params.events[key])); // create state and proxy for changing state
-
-    self.state = clone(params.state);
-    self.stage = clone(params.state);
+    Object.keys(params.events || {}).forEach(key => self.subscribe(key, params.events[key]));
   }
   /**
    * Register new constructs with the store.
@@ -290,17 +290,34 @@ class Store {
     Object.assign(this.stage, clone(params.state) || {});
     Object.assign(this.getters, params.getters || {});
     Object.assign(this.actions, params.actions || {});
+    Object.assign(this.mutations, params.mutations || {}); // detect state shape
+
+    this.nested = [];
+    Object.keys(this.state).forEach(key => {
+      if (isObject(this.state[key])) {
+        this.nested.push(key);
+      }
+    });
   }
   /**
    * Reset store back to base state.
+   *
+   * @param {string} key - State param to reset in store.
    */
 
 
-  reset() {
+  reset(key) {
     const self = this;
     self.status.push(status.RESET);
-    self.state = clone(self.backup);
-    self.stage = clone(self.backup);
+
+    if (typeof key === 'undefined') {
+      self.state = clone(self.backup);
+      self.stage = clone(self.backup);
+    } else {
+      self.state[key] = clone(self.backup[key]);
+      self.stage[key] = clone(self.backup[key]);
+    }
+
     self.events.publish(status.RESET);
     self.status.pop();
   }
@@ -323,10 +340,26 @@ class Store {
 
 
     if (self.options.recurse) {
-      self.state = clone(self.stage);
-    } else {
+      self.state = clone(self.stage); // if top-level is index
+    } else if (self.nested.length === 0) {
       self.state = { ...self.stage
-      };
+      }; // nested items with index
+    } else {
+      // cascade updates
+      Object.keys(self.stage).forEach(key => {
+        if (self.nested.includes(key)) {
+          self.state[key] = { ...self.stage[key]
+          };
+        } else {
+          self.state[key] = self.stage[key];
+        }
+      }); // cascade deletes
+
+      Object.keys(self.state).forEach(key => {
+        if (!(key in self.stage)) {
+          delete self.state[key];
+        }
+      });
     } // reset getters cache
 
 
@@ -355,13 +388,7 @@ class Store {
     } // push the changes to state
 
 
-    if (self.options.recurse) {
-      self.stage = clone(self.state);
-    } else {
-      self.stage = { ...self.state
-      };
-    } // publish updates if specfied
-
+    self.stage = clone(self.state); // publish updates if specfied
 
     if (publish) {
       self.events.publish(status.ROLLBACK);
