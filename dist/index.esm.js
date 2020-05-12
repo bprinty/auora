@@ -499,11 +499,13 @@ class Store {
 
 
     if (isPromise(result)) {
-      result = result.then(() => {
+      result = result.then(response => {
         if (self.status.previous === status.IDLE) {
           self.flush();
           self.events.publish(status.DISPATCH, name, ...payload);
         }
+
+        return response;
       }).catch(err => {
         self.rollback();
         throw err;
