@@ -457,7 +457,7 @@ class Store {
    */
 
 
-  async dispatch(name, ...payload) {
+  dispatch(name, ...payload) {
     const self = this; // assert action exists
 
     if (typeof self.actions[name] !== 'function') {
