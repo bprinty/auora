@@ -28,7 +28,8 @@ test("actions.simple", async () => {
   assert.equal(store.status.current, 'idle');
 
   // sync action
-  store.apply.increment();
+  const result = store.apply.increment();
+  assert.equal(result, 1);
   assert.equal(store.state.counter, 1);
   assert.equal(store.status.current, 'idle');
 

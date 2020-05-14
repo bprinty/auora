@@ -345,7 +345,7 @@ export class Store {
    * @param {string} name - Name of action to dispatch.
    * @param {object} payload - Arguments for action.
    */
-  async dispatch(name, ...payload) {
+  dispatch(name, ...payload) {
     const self = this;
 
     // assert action exists
