@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Examples | Auora</title>
+    <meta name="description" content="🦄 ~ Another state manager ~ 🔥">
+    <meta name="generator" content="VuePress 1.3.1">
+    <link rel="icon" href="/auora/icons/favicon.ico">
+    
+    <link rel="preload" href="/auora/assets/css/0.styles.86bace7d.css" as="style"><link rel="preload" href="/auora/assets/js/app.1e2add5a.js" as="script"><link rel="preload" href="/auora/assets/js/2.ed3f492f.js" as="script"><link rel="preload" href="/auora/assets/js/10.3076a4b0.js" as="script"><link rel="prefetch" href="/auora/assets/js/11.02035c46.js"><link rel="prefetch" href="/auora/assets/js/12.69fc285a.js"><link rel="prefetch" href="/auora/assets/js/13.b8809874.js"><link rel="prefetch" href="/auora/assets/js/14.bac406af.js"><link rel="prefetch" href="/auora/assets/js/3.af0c71fe.js"><link rel="prefetch" href="/auora/assets/js/4.5a4318b6.js"><link rel="prefetch" href="/auora/assets/js/5.55dfc4db.js"><link rel="prefetch" href="/auora/assets/js/6.904b3f38.js"><link rel="prefetch" href="/auora/assets/js/7.deb40130.js"><link rel="prefetch" href="/auora/assets/js/8.f60e2de7.js"><link rel="prefetch" href="/auora/assets/js/9.3f1e926d.js">
+    <link rel="stylesheet" href="/auora/assets/css/0.styles.86bace7d.css">
+  </head>
+  <body>
+    <div id="app" data-server-rendered="true"><div class="theme-container"><header class="navbar"><div class="sidebar-button"><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" viewBox="0 0 448 512" class="icon"><path fill="currentColor" d="M436 124H12c-6.627 0-12-5.373-12-12V80c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12zm0 160H12c-6.627 0-12-5.373-12-12v-32c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12zm0 160H12c-6.627 0-12-5.373-12-12v-32c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12z"></path></svg></div> <a href="/auora/" class="home-link router-link-active"><!----> <span class="site-name">Auora</span></a> <div class="links"><div class="search-box"><input aria-label="Search" autocomplete="off" spellcheck="false" value=""> <!----></div> <nav class="nav-links can-hide"> <a href="https://github.com/bprinty/auora" target="_blank" rel="noopener noreferrer" class="repo-link">
+    GitHub
+    <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></nav></div></header> <div class="sidebar-mask"></div> <aside class="sidebar"><nav class="nav-links"> <a href="https://github.com/bprinty/auora" target="_blank" rel="noopener noreferrer" class="repo-link">
+    GitHub
+    <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></nav>  <ul class="sidebar-links"><li><a href="/auora/overview/" class="sidebar-link">Overview</a><ul class="sidebar-sub-headers"><li class="sidebar-sub-header"><a href="/auora/overview/#prerequisites" class="sidebar-link">Prerequisites</a></li><li class="sidebar-sub-header"><a href="/auora/overview/#quickstart" class="sidebar-link">Quickstart</a></li><li class="sidebar-sub-header"><a href="/auora/overview/#table-of-contents" class="sidebar-link">Table of Contents</a></li><li class="sidebar-sub-header"><a href="/auora/overview/#additional-resources" class="sidebar-link">Additional Resources</a></li></ul></li><li><a href="/auora/setup/" class="sidebar-link">Setup</a><ul class="sidebar-sub-headers"><li class="sidebar-sub-header"><a href="/auora/setup/#install-in-project" class="sidebar-link">Install in Project</a></li><li class="sidebar-sub-header"><a href="/auora/setup/#use-via-cdn" class="sidebar-link">Use via CDN</a></li><li class="sidebar-sub-header"><a href="/auora/setup/#configuration" class="sidebar-link">Configuration</a></li><li class="sidebar-sub-header"><a href="/auora/setup/#options" class="sidebar-link">Options</a></li></ul></li><li><a href="/auora/guide/" class="sidebar-link">Guide</a><ul class="sidebar-sub-headers"><li class="sidebar-sub-header"><a href="/auora/guide/#concepts" class="sidebar-link">Concepts</a></li><li class="sidebar-sub-header"><a href="/auora/guide/#store" class="sidebar-link">Store</a></li><li class="sidebar-sub-header"><a href="/auora/guide/#state" class="sidebar-link">State</a></li><li class="sidebar-sub-header"><a href="/auora/guide/#actions" class="sidebar-link">Actions</a></li><li class="sidebar-sub-header"><a href="/auora/guide/#getters" class="sidebar-link">Getters</a></li><li class="sidebar-sub-header"><a href="/auora/guide/#events" class="sidebar-link">Events</a></li><li class="sidebar-sub-header"><a href="/auora/guide/#mutations" class="sidebar-link">Mutations</a></li></ul></li><li><a href="/auora/patterns/" class="sidebar-link">Patterns</a><ul class="sidebar-sub-headers"><li class="sidebar-sub-header"><a href="/auora/patterns/#application-structure" class="sidebar-link">Application Structure</a></li><li class="sidebar-sub-header"><a href="/auora/patterns/#modules" class="sidebar-link">Modules</a></li><li class="sidebar-sub-header"><a href="/auora/patterns/#dynamic-registration" class="sidebar-link">Dynamic Registration</a></li></ul></li><li><a href="/auora/examples/" class="active sidebar-link">Examples</a><ul class="sidebar-sub-headers"><li class="sidebar-sub-header"><a href="/auora/examples/#vue" class="sidebar-link">Vue</a></li><li class="sidebar-sub-header"><a href="/auora/examples/#angular" class="sidebar-link">Angular</a></li><li class="sidebar-sub-header"><a href="/auora/examples/#react" class="sidebar-link">React</a></li></ul></li><li><a href="/auora/api/" class="sidebar-link">API</a><ul class="sidebar-sub-headers"><li class="sidebar-sub-header"><a href="/auora/api/#event-management" class="sidebar-link">Event Management</a></li><li class="sidebar-sub-header"><a href="/auora/api/#store" class="sidebar-link">Store</a></li><li class="sidebar-sub-header"><a href="/auora/api/#observable" class="sidebar-link">Observable</a></li></ul></li></ul> </aside> <main class="page"> <div class="theme-default-content content__default"><h1 id="examples"><a href="#examples" class="header-anchor">#</a> Examples</h1> <p>This section will detail code-heavy examples of how to use this library in specific modern UI Frameworks. Generally, using this library in a framework involves using an extension designed specifically for that framework. Frameworks currently with plugin support include (this list will grow as more plugins are created):</p> <ul><li><a href="https://vuejs.org/" target="_blank" rel="noopener noreferrer">Vue<svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></li></ul> <p>And frameworks that will have future plugin support include (this list may change over time):</p> <ul><li><a href="https://angular.io/" target="_blank" rel="noopener noreferrer">Angular<svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></li> <li><a href="https://reactjs.org/" target="_blank" rel="noopener noreferrer">React<svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a><br></li></ul> <h2 id="vue"><a href="#vue" class="header-anchor">#</a> Vue</h2> <p>Previous sections of the documentation have alluded to Vue components and how to register <strong>Stores</strong> in a Vue application, but let's go into more detail about the different types of levers available when using this library in a <strong>Vue</strong> project.</p> <h3 id="basics"><a href="#basics" class="header-anchor">#</a> Basics</h3> <p>First, let's just go over the basics of how to bind a <strong>Store</strong> to a <strong>Vue</strong> application instance, using our simple <a href="/auora/guide/#store">Counter</a> example from previous sections of the documentation. Here is what our folder structure might look like (typical for a small Vue project):</p> <div class="language- extra-class"><pre class="language-text"><code>project/
+├── package.json
+└── src
+    ├── views/
+    │   └── ...
+    ├── components/
+    │   └── ...
+    ├── index.js
+    ├── router.js
+    └── store.js
+...
+</code></pre></div><p>As you can see above, we've included a placeholder <code>store.js</code> file that will contain all code for the application store. As a refresher, let's re-define our <strong>Store</strong> from previous examples:</p> <div class="language-javascript extra-class"><pre class="language-javascript"><code><span class="token comment">// contents of src/store.js</span>
+
+<span class="token keyword">import</span> <span class="token punctuation">{</span> Store <span class="token punctuation">}</span> <span class="token keyword">from</span> <span class="token string">'auora'</span><span class="token punctuation">;</span>
+
+<span class="token keyword">const</span> store <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Store</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+  state<span class="token operator">:</span> <span class="token punctuation">{</span>
+    count<span class="token operator">:</span> <span class="token number">0</span><span class="token punctuation">,</span>
+  <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  mutations<span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token function">increment</span><span class="token punctuation">(</span><span class="token parameter">state</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+      state<span class="token punctuation">.</span>count <span class="token operator">+=</span> <span class="token number">1</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+  <span class="token punctuation">}</span>
+  actions<span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token function">incrementAsync</span><span class="token punctuation">(</span><span class="token parameter">store</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+      <span class="token keyword">return</span> <span class="token keyword">new</span> <span class="token class-name">Promise</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter">resolve<span class="token punctuation">,</span> reject</span><span class="token punctuation">)</span> <span class="token operator">=&gt;</span> <span class="token punctuation">{</span>
+        store<span class="token punctuation">.</span><span class="token function">commit</span><span class="token punctuation">(</span><span class="token string">'increment'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token function">resolve</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+      <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre></div><p>With our store defined, we can bind it to the main <strong>Vue</strong> application instance using the <code>store</code> keyword (after importing the <code>Auora</code> plugin and initializing it):</p> <div class="language-javascript extra-class"><pre class="language-javascript"><code><span class="token comment">// contents of index.js</span>
+<span class="token keyword">import</span> Auora <span class="token keyword">from</span> <span class="token string">'auora/ext/vue'</span><span class="token punctuation">;</span>
+
+<span class="token keyword">import</span> counterStore <span class="token keyword">from</span> <span class="token string">'@/store'</span><span class="token punctuation">;</span>
+
+Vue<span class="token punctuation">.</span><span class="token function">use</span><span class="token punctuation">(</span>Auora<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token keyword">const</span> app <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Vue</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+  el<span class="token operator">:</span> <span class="token string">'#app'</span><span class="token punctuation">,</span>
+  store<span class="token operator">:</span> counterStore
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre></div><p>After binding the store, we can use it in components like:</p> <div class="language-html extra-class"><pre class="language-html"><code><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>template</span><span class="token punctuation">&gt;</span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span><span class="token punctuation">&gt;</span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span><span class="token punctuation">&gt;</span></span>{{ counter }}<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">&gt;</span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>button</span> <span class="token attr-name">@click</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">&quot;</span>increment<span class="token punctuation">&quot;</span></span><span class="token punctuation">&gt;</span></span>Increment Counter<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>button</span><span class="token punctuation">&gt;</span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>button</span> <span class="token attr-name">@click</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">&quot;</span>incrementAsync<span class="token punctuation">&quot;</span></span><span class="token punctuation">&gt;</span></span>Increment Counter Asynchronously<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>button</span><span class="token punctuation">&gt;</span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">&gt;</span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>template</span><span class="token punctuation">&gt;</span></span>
+
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span><span class="token punctuation">&gt;</span></span><span class="token script"><span class="token language-javascript">
+<span class="token keyword">export</span> <span class="token keyword">default</span> <span class="token punctuation">{</span>
+  name<span class="token operator">:</span> <span class="token string">'counter'</span><span class="token punctuation">,</span>
+  store<span class="token operator">:</span> <span class="token punctuation">{</span>
+    state<span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">'counter'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    mutations<span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">'increment'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    actions<span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">'incrementAsync'</span><span class="token punctuation">]</span>
+  <span class="token punctuation">}</span><span class="token punctuation">,</span>
+<span class="token punctuation">}</span>
+</span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">&gt;</span></span>
+</code></pre></div><p>Note that there is a new <code>store</code> keyword option that components can hook into for exposing parts of the store. The structure of that data will always be an <strong>Object</strong>, and requires the following format:</p> <div class="language-javascript extra-class"><pre class="language-javascript"><code>store<span class="token operator">:</span> <span class="token punctuation">{</span>
+  state<span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">'p1'</span><span class="token punctuation">,</span> <span class="token string">'p2'</span><span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token comment">// list of state params to expose as computed properties</span>
+  mutations<span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">'m1'</span><span class="token punctuation">,</span> <span class="token string">'m2'</span><span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token comment">// list of mutations to expose as methods</span>
+  mutations<span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">'a1'</span><span class="token punctuation">,</span> <span class="token string">'a2'</span><span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token comment">// list of actions to expose as methods</span>
+<span class="token punctuation">}</span>
+</code></pre></div><p>For context, the <strong>counter</strong> definition above is equivalent to:</p> <div class="language-javascript extra-class"><pre class="language-javascript"><code><span class="token keyword">export</span> <span class="token keyword">default</span> <span class="token punctuation">{</span>
+  name<span class="token operator">:</span> <span class="token string">'counter'</span><span class="token punctuation">,</span>
+  computed<span class="token operator">:</span> <span class="token punctuation">{</span>
+    counter<span class="token operator">:</span> <span class="token punctuation">{</span>
+      <span class="token keyword">get</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token keyword">return</span> <span class="token keyword">this</span><span class="token punctuation">.</span>$store<span class="token punctuation">.</span>state<span class="token punctuation">.</span>counter
+      <span class="token punctuation">}</span><span class="token punctuation">,</span>
+      <span class="token keyword">set</span> <span class="token punctuation">(</span>value<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token keyword">this</span><span class="token punctuation">.</span>$store<span class="token punctuation">.</span><span class="token function">commit</span><span class="token punctuation">(</span><span class="token string">'counter'</span><span class="token punctuation">,</span> value<span class="token punctuation">)</span>
+      <span class="token punctuation">}</span>
+    <span class="token punctuation">}</span>
+  <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token function">methods</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token function">increment</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+      <span class="token keyword">this</span><span class="token punctuation">.</span>$store<span class="token punctuation">.</span><span class="token function">commit</span><span class="token punctuation">(</span><span class="token string">'increment'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token function">incrementAsync</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+      <span class="token keyword">return</span> <span class="token keyword">this</span><span class="token punctuation">.</span>$store<span class="token punctuation">.</span><span class="token function">dispatch</span><span class="token punctuation">(</span><span class="token string">'incrementAsync'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre></div><div class="custom-block tip"><p class="custom-block-title">TIP</p> <p>Note the use of <strong>computed</strong> properties to proxy access to state parameters. Since state variables are automatically bootstrapped with a <strong>setter</strong> mutation, these computed properties can be automatically generated. If you create other specific mutations that should be used for setting a state value, you can use a syntax similar to above for declaring that mutation in the <code>set</code> block of a computed property.</p></div> <p>As you can see above, all components will also have access to a <code>$store</code> variable with the full store object. For example, to dispatch an action explicitly inside a component, use:</p> <div class="language-javascript extra-class"><pre class="language-javascript"><code><span class="token keyword">this</span><span class="token punctuation">.</span>$store<span class="token punctuation">.</span><span class="token function">dispatch</span><span class="token punctuation">(</span><span class="token string">'incrementAsync'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre></div><p>The syntax above is nice for explicitly showing what operations are available to specific components, but if we simply want to expose all available state metadata to a component, we can just set <code>store: true</code>:</p> <div class="language-html extra-class"><pre class="language-html"><code><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>template</span><span class="token punctuation">&gt;</span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span><span class="token punctuation">&gt;</span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span><span class="token punctuation">&gt;</span></span>{{ counter }}<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">&gt;</span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>button</span> <span class="token attr-name">@click</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">&quot;</span>increment<span class="token punctuation">&quot;</span></span><span class="token punctuation">&gt;</span></span>Increment Counter<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>button</span><span class="token punctuation">&gt;</span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>button</span> <span class="token attr-name">@click</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">&quot;</span>incrementAsync<span class="token punctuation">&quot;</span></span><span class="token punctuation">&gt;</span></span>Increment Counter Asynchronously<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>button</span><span class="token punctuation">&gt;</span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">&gt;</span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>template</span><span class="token punctuation">&gt;</span></span>
+
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span><span class="token punctuation">&gt;</span></span><span class="token script"><span class="token language-javascript">
+<span class="token keyword">export</span> <span class="token keyword">default</span> <span class="token punctuation">{</span>
+  name<span class="token operator">:</span> <span class="token string">'counter'</span><span class="token punctuation">,</span>
+  store<span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+<span class="token punctuation">}</span>
+</span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">&gt;</span></span>
+</code></pre></div><p>This will automatically reflect <strong>all</strong> store actions and methods into your component. However, it's recommended for clarity that specific store state parameters and operations are explicitly specified in components.</p> <p>Another valid form of shorthand is:</p> <div class="language-html extra-class"><pre class="language-html"><code>...
+
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span><span class="token punctuation">&gt;</span></span><span class="token script"><span class="token language-javascript">
+<span class="token keyword">export</span> <span class="token keyword">default</span> <span class="token punctuation">{</span>
+  name<span class="token operator">:</span> <span class="token string">'counter'</span><span class="token punctuation">,</span>
+  store<span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">'counter'</span><span class="token punctuation">,</span> <span class="token string">'increment'</span><span class="token punctuation">,</span> <span class="token string">'incrementAsync'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+<span class="token punctuation">}</span>
+</span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">&gt;</span></span>
+</code></pre></div><p>This will automatically search for store actions, mutations, or parameters matching the specified names and will bind them to the component accordingly. The order of the search is <strong>actions</strong> → <strong>mutations</strong> → <strong>state</strong>.</p> <h3 id="modules"><a href="#modules" class="header-anchor">#</a> Modules</h3> <p>You can also utilize the concept of <a href="/auora/patterns/#modules">Modules</a> when binding multiple stores to a <strong>Vue</strong> application instance. To illustrate this feature, let's consider the following application layout:</p> <div class="language- extra-class"><pre class="language-text"><code>project/
+├── package.json
+└── src
+    ├── index.js
+    └── modules/
+        ├── profile/
+        │   ├── views/
+        │   ├── components/
+        │   ├── index.js
+        │   ├── router.js
+        │   └── store.js
+        ├── feed/
+        │   ├── views/
+        │   ├── components/
+        │   ├── index.js
+        │   ├── router.js
+        │   └── store.js
+        ...
+</code></pre></div><p>In this project, we've defined separate stores for both the <code>profile</code> and <code>feed</code> sections of the application.</p> <p>To bind these separate stores to the same <strong>Vue</strong> application instance, you can use the following syntax:</p> <div class="language-javascript extra-class"><pre class="language-javascript"><code><span class="token comment">// contents of index.js</span>
+<span class="token keyword">import</span> Auora <span class="token keyword">from</span> <span class="token string">'auora/ext/vue'</span><span class="token punctuation">;</span>
+
+<span class="token keyword">import</span> profile <span class="token keyword">from</span> <span class="token string">'@/modules/profile/store'</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> feed <span class="token keyword">from</span> <span class="token string">'@/modules/feed/store'</span><span class="token punctuation">;</span>
+
+Vue<span class="token punctuation">.</span><span class="token function">use</span><span class="token punctuation">(</span>Auora<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token keyword">const</span> app <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Vue</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+  store<span class="token operator">:</span> <span class="token punctuation">{</span>
+    profile<span class="token punctuation">,</span>
+    feed<span class="token punctuation">,</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre></div><p>Then, inside of components in your application, you can access those modules in a nested way like so:</p> <div class="language-javascript extra-class"><pre class="language-javascript"><code><span class="token keyword">this</span><span class="token punctuation">.</span>$store<span class="token punctuation">.</span>profile<span class="token punctuation">.</span>state<span class="token punctuation">.</span>param1<span class="token punctuation">;</span>
+<span class="token keyword">this</span><span class="token punctuation">.</span>$store<span class="token punctuation">.</span>profile<span class="token punctuation">.</span><span class="token function">dispatch</span><span class="token punctuation">(</span><span class="token string">'profileAction'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">this</span><span class="token punctuation">.</span>$store<span class="token punctuation">.</span>feed<span class="token punctuation">.</span>state<span class="token punctuation">.</span>param2
+<span class="token keyword">this</span><span class="token punctuation">.</span>$store<span class="token punctuation">.</span>feed<span class="token punctuation">.</span><span class="token function">dispatch</span><span class="token punctuation">(</span><span class="token string">'feedAction'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre></div><p>Using the <code>store</code> property on components, we can expose specific functionality using the following syntax:</p> <div class="language-html extra-class"><pre class="language-html"><code><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span><span class="token punctuation">&gt;</span></span><span class="token script"><span class="token language-javascript">
+  <span class="token keyword">export</span> <span class="token keyword">default</span> <span class="token punctuation">{</span>
+    name<span class="token operator">:</span> <span class="token string">'my-component'</span><span class="token punctuation">,</span>
+    store<span class="token operator">:</span> <span class="token punctuation">{</span>
+      profile<span class="token operator">:</span> <span class="token punctuation">{</span>
+        state<span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">'param1'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+        actions<span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">'profileAction'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+      <span class="token punctuation">}</span><span class="token punctuation">,</span>
+      feed<span class="token operator">:</span> <span class="token punctuation">{</span>
+        mutations<span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">'feedMutation'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+      <span class="token punctuation">}</span>
+    <span class="token punctuation">}</span>
+  <span class="token punctuation">}</span>
+</span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">&gt;</span></span>
+</code></pre></div><h3 id="name-collision"><a href="#name-collision" class="header-anchor">#</a> Name Collision</h3> <p>One of the oldest <a href="https://www.youtube.com/watch?v=oHg5SJYRHA0" target="_blank" rel="noopener noreferrer">gotchas<svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a> in programming is unknowingly using the same name to represent different variables. To avoid name collision when using the <code>store</code> block in a Vue component, you can specify an object with name mapping for state variables (or any other construct). Here is an example:</p> <div class="language-html extra-class"><pre class="language-html"><code><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>template</span><span class="token punctuation">&gt;</span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span><span class="token punctuation">&gt;</span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h3</span><span class="token punctuation">&gt;</span></span>Extra Todos<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h3</span><span class="token punctuation">&gt;</span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span> <span class="token attr-name">v-for</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">&quot;</span>todo in todos<span class="token punctuation">&quot;</span></span><span class="token punctuation">&gt;</span></span>{{ todo.text }}<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">&gt;</span></span>
+
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h3</span><span class="token punctuation">&gt;</span></span>My Todos<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h3</span><span class="token punctuation">&gt;</span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span> <span class="token attr-name">v-for</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">&quot;</span>todo in myTodos<span class="token punctuation">&quot;</span></span><span class="token punctuation">&gt;</span></span>{{ todo.text }}<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">&gt;</span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">&gt;</span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>template</span><span class="token punctuation">&gt;</span></span>
+
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span><span class="token punctuation">&gt;</span></span><span class="token script"><span class="token language-javascript">
+<span class="token keyword">export</span> <span class="token keyword">default</span> <span class="token punctuation">{</span>
+    name<span class="token operator">:</span> <span class="token string">'todo-component'</span><span class="token punctuation">,</span>
+    store<span class="token operator">:</span> <span class="token punctuation">{</span>
+      state<span class="token operator">:</span> <span class="token punctuation">{</span>
+        <span class="token comment">// local-name: state-param</span>
+        myTodos<span class="token operator">:</span> <span class="token string">'todos'</span>
+      <span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token punctuation">}</span>
+    <span class="token function">data</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+      <span class="token keyword">return</span> <span class="token punctuation">{</span>
+        todos<span class="token operator">:</span> <span class="token punctuation">[</span>
+          <span class="token punctuation">{</span> id<span class="token operator">:</span> <span class="token number">1</span><span class="token punctuation">,</span> text<span class="token operator">:</span> <span class="token string">'extra todo 1'</span> <span class="token punctuation">}</span><span class="token punctuation">,</span>
+          <span class="token punctuation">{</span> id<span class="token operator">:</span> <span class="token number">2</span><span class="token punctuation">,</span> text<span class="token operator">:</span> <span class="token string">'extra todo 2'</span> <span class="token punctuation">}</span>
+        <span class="token punctuation">]</span>
+      <span class="token punctuation">}</span>
+    <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">&gt;</span></span>
+</code></pre></div> <h2 id="angular"><a href="#angular" class="header-anchor">#</a> Angular</h2> <p>You can still use this library in a Angular project, but you'll currently need to figure out your own patterns for incorporating it. A native Angular plugin leveraging this library will be included in a future release.</p> <div class="custom-block warning"><p class="custom-block-title">Help Wanted</p> <p>If you're a Angular Pro and would like to help out by working on a Angular plugin, please file a <code>discussion</code> ticket in the GitHub <a href="https://github.com/bprinty/auora/issues" target="_blank" rel="noopener noreferrer">Issue Tracker<svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a> for this project.</p></div> <h2 id="react"><a href="#react" class="header-anchor">#</a> React</h2> <p>You can still use this library in a React project, but you'll currently need to figure out your own patterns for incorporating it. A native React plugin leveraging this library will be included in a future release.</p> <div class="custom-block warning"><p class="custom-block-title">Help Wanted</p> <p>If you're a React Pro and would like to help out by working on a React plugin, please file a <code>discussion</code> ticket in the GitHub <a href="https://github.com/bprinty/auora/issues" target="_blank" rel="noopener noreferrer">Issue Tracker<svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a> for this project.</p></div> <style>
+.badge {
+  display: inline-block;
+  font-size: 20px;
+  font-family: monospace;
+  height: 28px;
+  line-height: 28px;
+  border-radius: 3px;
+  padding: 0 6px;
+  color: #fff;
+  background-color: #42b983;
+}
+.scoped .badge,
+blockquote .badge {
+  font-size: 15px;
+  height: 23px;
+  line-height: 23px;
+}
+.badge.warning {
+  background-color: #e7c000;
+}
+.badge.error {
+  background-color: #da5961;
+}
+.badge.tip {
+  background-color: #42b983;
+}
+blockquote.scoped.warning {
+  border-color: #e7c000;
+}
+blockquote.scoped.error {
+  border-color: #da5961;
+}
+blockquote.scoped.tip {
+  border-color: #42b983;
+}
+
+</style></div> <footer class="page-edit"><div class="edit-link"><a href="https://github.com/bprinty/auora/edit/master/docs/examples/README.md" target="_blank" rel="noopener noreferrer">Edit this page on GitHub</a> <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></div> <div class="last-updated"><span class="prefix">Last Updated:</span> <span class="time">4/11/2020, 9:09:38 AM</span></div></footer> <div class="page-nav"><p class="inner"><span class="prev">
+      ←
+      <a href="/auora/patterns/" class="prev">
+        Patterns
+      </a></span> <span class="next"><a href="/auora/api/">
+        API
+      </a>
+      →
+    </span></p></div> </main></div><div class="global-ui"></div></div>
+    <script src="/auora/assets/js/app.1e2add5a.js" defer></script><script src="/auora/assets/js/2.ed3f492f.js" defer></script><script src="/auora/assets/js/10.3076a4b0.js" defer></script>
+  </body>
+</html>
