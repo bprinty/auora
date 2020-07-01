@@ -65,7 +65,7 @@ footer: MIT Licensed | Copyright © 2020-present Blake Printy
 
 <br /><br />
 
-<p>This example store manages a counter. There are two actions for changing the counter, and events that will save the history of the counter value as changes are made. <i class="fas fa-arrow-right"></i></p>
+<p>This example store manages a counter. There are two <b>actions</b> that will change the counter, along with two <b>events</b> that will save the history of the counter value as changes are made. <i class="fas fa-arrow-right"></i></p>
 
 </div>
 <div class="panel-code">
