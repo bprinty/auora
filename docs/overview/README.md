@@ -19,7 +19,7 @@ The code for this project was initially developed as part of an all-purpose (fro
 
 ### How is this Library Different?
 
-Unique features provided by this library that aren't readily available in other state management libraries include:
+Unique features provided by Auora that aren't readily available in other state management libraries include:
 
 ::: tip No Mutations or Reducers
 
@@ -41,29 +41,29 @@ Users can subscribe to both global events (i.e. `commit`, `dispatch`, etc ...), 
 
 ::: tip Simpler Syntax
 
-Along with standard syntactic patterns, this module also supports a more fluid syntax for actions that allows users to call actions as functions instead of passing them as a string into `dispatch` calls.
+Along with standard syntactic patterns, Auora also supports a more fluid syntax for actions that allows users to call actions as functions instead of passing them as a string into `dispatch` calls.
 
 :::
 
 ::: tip Framework-Agnostic
 
-This library was built to work with any front-end framework (or without one), and also has thorough [Examples](/examples/) detailing how to best use this library within the context of several popular frameworks.
+Auora was built to work with any front-end framework (or without one), and also has thorough [Examples](/examples/) detailing how to best use it within the context of several popular frameworks.
 
 :::
 
-Each of these core features is described in detail throughout the [Guide](/guide/) section of the documentation. For additional context on how to use this module in a front-end framework like [Vue](https://vuejs.org/) or [React](https://reactjs.org/), see the [Examples](/examples/) section of the documentation.
+Each of these core features is described in detail throughout the [Guide](/guide/) section of the documentation. For additional context on how to use Auora in a front-end framework like [Vue](https://vuejs.org/) or [React](https://reactjs.org/), see the [Examples](/examples/) section of the documentation.
 
 
 ## Prerequisites
 
 This documentation makes heavy use of ES6 JavaScript syntax. If the code throughout these docs looks like a foreign language, you can brush up on ES6 [here](https://babeljs.io/docs/en/learn).
 
-Although this library is useful without a front-end framework, it's still helpful to understand the overall concepts. [Here](https://stackoverflow.blog/2020/02/03/is-it-time-for-a-front-end-framework/) is a good blog post that outlines value provided by front-end frameworks.
+Although Auora is useful without a front-end framework, it's still helpful to understand the overall concepts. [Here](https://stackoverflow.blog/2020/02/03/is-it-time-for-a-front-end-framework/) is a good blog post that outlines value provided by front-end frameworks.
 
 
 ## Quickstart
 
-To provide a quick and simple high-level picture of how this library can fit into a project, let's define a minimal **Store** and use that **Store** in a simple **Vue** application. We're going to define the `Hello World` of state management: a *counter* application.
+To provide a quick and simple high-level picture of how Auora can fit into a project, let's define a minimal **Store** and use that **Store** in a simple **Vue** application. We're going to define the `Hello World` of state management: a *counter* application.
 
 ### A Minimal Store
 
@@ -144,7 +144,7 @@ store.apply.add(4).then(() => {
 
 ### A Minimal Application
 
-This library can be used within the context of any front-end framework, but let's use **Vue** to provide a concrete example of how it can easily augment front-end development. This package has several [Extensions](/examples/) built to easily bind **Stores** to modern front-end frameworks
+Auora can be used within the context of any front-end framework, but let's use **Vue** to provide a concrete example of how it can easily augment front-end development. This package has several [Extensions](/examples/) built to easily bind **Stores** to modern front-end frameworks
 
 First, to bind our store from the previous section in a **Vue** application, we can use:
 

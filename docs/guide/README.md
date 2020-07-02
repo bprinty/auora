@@ -1,11 +1,11 @@
 # Guide
 
-Below, we'll cover some core concepts that should be understood about state management, and how this library can make state management simpler.
+Below, we'll cover some core concepts that should be understood about state management, and how Auora can make state management simpler.
 
 
 ## Concepts
 
-The core concepts that need to be understood when using this module (as with most state managers) are:
+The core concepts that need to be understood when using Auora (as with most state managers) are:
 
 * [Store](#store) - The central manager for accessing state and **dispatching** actions.
 * [State](#state) - The global source of truth for data models in the application.
@@ -41,7 +41,7 @@ The **Store** is a singular entry-point for accessing state data, dispatching ac
 
 All of the **state**, **actions**, and **events** are managed by the store, so views and components can be developed in an isolated way.
 
-To create a store with this library, you simply need to define the **state** and **actions** that the store should manage. For example, here is a store definition showing all types of configuration for a `counter` application (if you've used `Vuex` before, you'll be familiar with the syntax):
+To create a store with Auora, you simply need to define the **state** and **actions** that the store should manage. For example, here is a store definition showing all types of configuration for a `counter` application (if you've used `Vuex` before, you'll be familiar with the syntax):
 
 ```javascript
 const store = new Store({
@@ -287,11 +287,11 @@ At the top of the chain for cascading state changes are `actions`. When a user i
 
 Although actions will commonly wrap communication with an external service (i.e. REST API), they don't have to. They can also be either **syncronous** or **asynchronous**.
 
-Since actions can be complex and change state in many different ways, and accordingly provide guardrails around state changes throughout the lifecycle of an action. Here is a diagram detailing execution flow during an action:
+Since actions can be complex and change state in many different ways, Auora provides guardrails around state changes throughout the lifecycle of an action. Here is a diagram detailing execution flow during an action:
 
 <img id="action-flow" :src="$withBase('/action-flow.png')" width="600px" alt="Action Flow" />
 
-The diagram above is pretty busy, but fully captures what happens as an action is executed. The imporant takeaway from this diagram is that actions **wrap state updates in transactions** so that errors that occur in the middle of action execution trigger a rollback to the previous state.
+The diagram above fully captures what happens as an action is executed. The imporant takeaway from this diagram is that actions **wrap state updates in transactions** so that errors that occur in the middle of action execution trigger a rollback to the previous state.
 
 
 ### Defining Actions
@@ -373,7 +373,7 @@ For examples of how to dispatch actions in other front-end frameworks, see the [
 
 ### Transactions
 
-Other state management libraries use the concept of `mutations` to manage explicitly committing changes to store. Although the concept of committing to `state` is necessary, it's not functionality users should worry about when building a state manager. Instead, this library uses the concept of *State Transactions* to manage.
+Other state management libraries use the concept of `mutations` to manage explicitly committing changes to a store. Although the concept of committing to `state` is necessary, it's not functionality users should worry about when building a state manager. Instead, Auora uses the concept of *State Transactions* to manage atomic state changes.
 
 During actions or other operations that change state, the store maintains a hot replica of the `state` in an internal `stage` object. When actions are dispatched, the `stage` object is passed into actions in lieu of `state`, and after actions are executed, is either used to commit new changes to the store or rollback the `stage` to match the current `state`.
 
@@ -596,7 +596,7 @@ Getter results will **not be cached** if getter functions return a nested functi
 Expanding more upon how to use getters, let's say we have the following store (where we've defined two types of getters):
 
 ```javascript
-const store = new Auora({
+const store = new Store({
   state: {
     items: [
       { id: 1, foo: true },
@@ -664,7 +664,7 @@ The following global events are *published* throughout the execution of store op
 To subscribe to these global events, use the `subscribe` method on `Store` objects:
 
 ```javascript
-store.subscribe('action', (state, action, input) => {
+store.subscribe('dispatch', (state, action, input) => {
   console.log(`[INFO] Action \`${action}\`dispatched with input \`${input}\`!`);
 });
 
@@ -787,7 +787,7 @@ In short, `mutations` are functions that update `state`. They wrap specific type
 
 ::: warning NOTE
 
-Defining and using mutations isn't necessary or recommended when using this library. This concept is included to create parity with existing state management architectures so code can easily be migrated over time.
+Defining and using mutations isn't necessary or recommended when using Auora. This concept is included to create parity with existing state management architectures so code can easily be migrated over time.
 
 :::
 
@@ -837,7 +837,7 @@ Inputs to mutation functions include a copy of the `state` and any arguments pas
 
 ### Pre-defined Mutations
 
-When state variables are declared with this library, the following mutations are automatically created:
+When state variables are declared with Auora, the following mutations are automatically created:
 
 | Name | Purpose |
 |------|---------|
