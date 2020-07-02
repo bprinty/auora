@@ -45,15 +45,13 @@ const store = new Store({
   state: {
     count: 0,
   },
-  mutations: {
+  actions: {
     increment(state) {
       state.count += 1;
-    }
-  }
-  actions: {
+    },
     incrementAsync(store) {
       return new Promise((resolve, reject) => {
-        store.commit('increment');
+        store.dispatch('increment');
         resolve();
       });
     }
@@ -93,8 +91,7 @@ export default {
   name: 'counter',
   store: {
     state: ['counter'],
-    mutations: ['increment'],
-    actions: ['incrementAsync']
+    actions: ['increment', 'incrementAsync']
   },
 }
 </script>
@@ -106,7 +103,7 @@ Note that there is a new `store` keyword option that components can hook into fo
 store: {
   state: ['p1', 'p2'], // list of state params to expose as computed properties
   mutations: ['m1', 'm2'], // list of mutations to expose as methods
-  mutations: ['a1', 'a2'], // list of actions to expose as methods
+  actions: ['a1', 'a2'], // list of actions to expose as methods
 }
 ```
 
@@ -121,13 +118,13 @@ export default {
         return this.$store.state.counter
       },
       set (value) {
-        this.$store.commit('counter', value)
+        this.$store.dispatch('counter', value)
       }
     }
   },
   methods() {
     increment() {
-      this.$store.commit('increment');
+      this.$store.dispatch('increment');
     },
     incrementAsync() {
       return this.$store.dispatch('incrementAsync');
