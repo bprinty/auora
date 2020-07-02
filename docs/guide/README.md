@@ -373,7 +373,7 @@ For examples of how to dispatch actions in other front-end frameworks, see the [
 
 ### Transactions
 
-Other state management libraries use the concept of `mutations` to manage explicitly committing changes to store. Although the concept of committing to `state` is necessary, it's not functionality users should worry about when building a state manager. Instead, this library uses the concept of *State Transactions* to manage.
+Other state management libraries use the concept of `mutations` to manage explicitly committing changes to a store. Although the concept of committing to `state` is necessary, it's not functionality users should worry about when building a state manager. Instead, this library uses the concept of *State Transactions* to manage atomic state changes.
 
 During actions or other operations that change state, the store maintains a hot replica of the `state` in an internal `stage` object. When actions are dispatched, the `stage` object is passed into actions in lieu of `state`, and after actions are executed, is either used to commit new changes to the store or rollback the `stage` to match the current `state`.
 
