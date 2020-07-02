@@ -596,7 +596,7 @@ Getter results will **not be cached** if getter functions return a nested functi
 Expanding more upon how to use getters, let's say we have the following store (where we've defined two types of getters):
 
 ```javascript
-const store = new Auora({
+const store = new Store({
   state: {
     items: [
       { id: 1, foo: true },
@@ -664,7 +664,7 @@ The following global events are *published* throughout the execution of store op
 To subscribe to these global events, use the `subscribe` method on `Store` objects:
 
 ```javascript
-store.subscribe('action', (state, action, input) => {
+store.subscribe('dispatch', (state, action, input) => {
   console.log(`[INFO] Action \`${action}\`dispatched with input \`${input}\`!`);
 });
 
