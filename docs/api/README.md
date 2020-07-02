@@ -2,7 +2,7 @@
 
 ## Event Management
 
-This library maintains it's publish-subscribe implementation for brodcasting events that happen thoughout the **Store** lifecycle. The API for the `PubSub` manager is below:
+Auora maintains its own publish-subscribe implementation for brodcasting events that happen thoughout the **Store** lifecycle. The API for the `PubSub` manager is below:
 
 ### PubSub
 

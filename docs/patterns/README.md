@@ -13,7 +13,7 @@ As with any middleware library, there are architectural decisions developers nee
 
 ## Application Structure
 
-This library was designed to be flexible and adapt to different architectural patterns that both small- and large-scale applications require.
+Auora was designed to be flexible and adapt to different architectural patterns that both small- and large-scale applications require.
 
 To help with discussing different types of project organization, here is an example of the directory structure for a typical small-scale application using a modern framework:
 

@@ -1,11 +1,11 @@
 # Guide
 
-Below, we'll cover some core concepts that should be understood about state management, and how this library can make state management simpler.
+Below, we'll cover some core concepts that should be understood about state management, and how Auora can make state management simpler.
 
 
 ## Concepts
 
-The core concepts that need to be understood when using this module (as with most state managers) are:
+The core concepts that need to be understood when using Auora (as with most state managers) are:
 
 * [Store](#store) - The central manager for accessing state and **dispatching** actions.
 * [State](#state) - The global source of truth for data models in the application.
@@ -41,7 +41,7 @@ The **Store** is a singular entry-point for accessing state data, dispatching ac
 
 All of the **state**, **actions**, and **events** are managed by the store, so views and components can be developed in an isolated way.
 
-To create a store with this library, you simply need to define the **state** and **actions** that the store should manage. For example, here is a store definition showing all types of configuration for a `counter` application (if you've used `Vuex` before, you'll be familiar with the syntax):
+To create a store with Auora, you simply need to define the **state** and **actions** that the store should manage. For example, here is a store definition showing all types of configuration for a `counter` application (if you've used `Vuex` before, you'll be familiar with the syntax):
 
 ```javascript
 const store = new Store({
@@ -373,7 +373,7 @@ For examples of how to dispatch actions in other front-end frameworks, see the [
 
 ### Transactions
 
-Other state management libraries use the concept of `mutations` to manage explicitly committing changes to a store. Although the concept of committing to `state` is necessary, it's not functionality users should worry about when building a state manager. Instead, this library uses the concept of *State Transactions* to manage atomic state changes.
+Other state management libraries use the concept of `mutations` to manage explicitly committing changes to a store. Although the concept of committing to `state` is necessary, it's not functionality users should worry about when building a state manager. Instead, Auora uses the concept of *State Transactions* to manage atomic state changes.
 
 During actions or other operations that change state, the store maintains a hot replica of the `state` in an internal `stage` object. When actions are dispatched, the `stage` object is passed into actions in lieu of `state`, and after actions are executed, is either used to commit new changes to the store or rollback the `stage` to match the current `state`.
 
@@ -787,7 +787,7 @@ In short, `mutations` are functions that update `state`. They wrap specific type
 
 ::: warning NOTE
 
-Defining and using mutations isn't necessary or recommended when using this library. This concept is included to create parity with existing state management architectures so code can easily be migrated over time.
+Defining and using mutations isn't necessary or recommended when using Auora. This concept is included to create parity with existing state management architectures so code can easily be migrated over time.
 
 :::
 
@@ -837,7 +837,7 @@ Inputs to mutation functions include a copy of the `state` and any arguments pas
 
 ### Pre-defined Mutations
 
-When state variables are declared with this library, the following mutations are automatically created:
+When state variables are declared with Auora, the following mutations are automatically created:
 
 | Name | Purpose |
 |------|---------|
