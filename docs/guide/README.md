@@ -287,11 +287,11 @@ At the top of the chain for cascading state changes are `actions`. When a user i
 
 Although actions will commonly wrap communication with an external service (i.e. REST API), they don't have to. They can also be either **syncronous** or **asynchronous**.
 
-Since actions can be complex and change state in many different ways, and accordingly provide guardrails around state changes throughout the lifecycle of an action. Here is a diagram detailing execution flow during an action:
+Since actions can be complex and change state in many different ways, Auora provides guardrails around state changes throughout the lifecycle of an action. Here is a diagram detailing execution flow during an action:
 
 <img id="action-flow" :src="$withBase('/action-flow.png')" width="600px" alt="Action Flow" />
 
-The diagram above is pretty busy, but fully captures what happens as an action is executed. The imporant takeaway from this diagram is that actions **wrap state updates in transactions** so that errors that occur in the middle of action execution trigger a rollback to the previous state.
+The diagram above fully captures what happens as an action is executed. The imporant takeaway from this diagram is that actions **wrap state updates in transactions** so that errors that occur in the middle of action execution trigger a rollback to the previous state.
 
 
 ### Defining Actions
