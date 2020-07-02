@@ -118,7 +118,7 @@ export default {
         return this.$store.state.counter
       },
       set (value) {
-        this.$store.dispatch('counter', value)
+        this.$store.commit('counter', value)
       }
     }
   },
